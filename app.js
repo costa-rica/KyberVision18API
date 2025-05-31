@@ -9,6 +9,8 @@ var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
+var adminDbRouter = require("./routes/adminDb");
+var teamUsersRouter = require("./routes/teamUsers");
 
 var app = express();
 const cors = require("cors");
@@ -28,6 +30,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/admin-db", adminDbRouter);
+app.use("/team-users", teamUsersRouter);
 
 // Increase payload size for large files
 app.use(express.json({ limit: "6gb" }));
