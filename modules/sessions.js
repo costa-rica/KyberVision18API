@@ -71,16 +71,32 @@ const getSessionWithTeams = async (sessionId) => {
       include: [
         {
           model: Team,
-          as: "team",
-          attributes: ["id", "teamName", "city", "coachName"], // Only team fields
+          attributes: ["id", "teamName", "city", "coachName"],
           required: true,
-          foreignKey: "teamId",
         },
       ],
       attributes: {
-        exclude: ["teamId", "contractLeagueTeamId"], // Exclude these fields from match details
+        exclude: ["teamId", "contractLeagueTeamId"],
       },
     });
+    // const session = await Session.findOne({
+    //   where: { id: sessionId },
+    //   include: [
+    //     {
+    //       model: Team,
+    //       include: [
+    //         {
+    //           model: Team,
+    //           attributes: ["id", "teamName", "city", "coachName"],
+    //           required: true,
+    //         },
+    //       ],
+    //     },
+    //   ],
+    //   attributes: {
+    //     exclude: ["teamId", "contractLeagueTeamId"], // Exclude these fields from match details
+    //   },
+    // });
 
     if (!session) {
       return { success: false, error: "Session not found" };
@@ -89,14 +105,14 @@ const getSessionWithTeams = async (sessionId) => {
     // Rename team attributes by prefixing them
     const formattedSession = {
       ...session.get(),
-      teamId: session.team?.id,
-      teamName: session.team?.teamName,
-      teamCity: session.team?.city,
-      teamCoach: session.team?.coachName,
+      teamId: session.Team?.id,
+      teamName: session.Team?.teamName,
+      teamCity: session.Team?.city,
+      teamCoach: session.Team?.coachName,
     };
 
     // Remove the nested team objects
-    delete formattedSession.team;
+    delete formattedSession.Team;
 
     return { success: true, session: formattedSession };
   } catch (error) {

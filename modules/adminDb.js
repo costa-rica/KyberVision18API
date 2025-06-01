@@ -22,7 +22,7 @@ const {
   Point,
   Script,
   // SyncContract,
-  ScriptsVideoContracts,
+  ContractScriptVideo,
   Team,
 } = require("kybervision16db");
 
@@ -33,7 +33,6 @@ const mkdirAsync = promisify(fs.mkdir);
 const writeFileAsync = promisify(fs.writeFile);
 
 const models = {
-  sequelize,
   User,
   Video,
   Action,
@@ -52,7 +51,7 @@ const models = {
   Point,
   Script,
   // SyncContract,
-  ScriptsVideoContracts,
+  ContractScriptVideo,
   Team,
 };
 
@@ -162,6 +161,7 @@ async function createDatabaseBackupZipFile(suffix = "") {
     let hasData = false;
 
     for (const tableName in models) {
+      // console.log(`Processing table: ${tableName}`);
       if (models.hasOwnProperty(tableName)) {
         const records = await models[tableName].findAll({ raw: true });
         if (records.length === 0) continue;
