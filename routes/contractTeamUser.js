@@ -53,8 +53,9 @@ router.get("/", authenticateToken, async (req, res) => {
         attributes: ["id", "teamName", "city", "coachName"], // specify fields you want
       },
     });
-
+    // console.log(" --- contractTeamUsers ------");
     // console.log(contractTeamUsers[0].dataValues);
+    // console.log(" -----------------------------");
 
     // const teamsArray = groupContracts.map((gc) => gc.Team);
     const teamsArray = await Promise.all(
