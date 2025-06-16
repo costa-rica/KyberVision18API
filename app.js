@@ -13,6 +13,7 @@ var adminDbRouter = require("./routes/adminDb");
 var contractTeamUserRouter = require("./routes/contractTeamUser");
 var videosRouter = require("./routes/videos");
 var sessionsRouter = require("./routes/sessions");
+var leaguesRouter = require("./routes/leagues");
 
 var app = express();
 const cors = require("cors");
@@ -36,6 +37,7 @@ app.use("/admin-db", adminDbRouter);
 app.use("/contract-team-user", contractTeamUserRouter);
 app.use("/videos", videosRouter);
 app.use("/sessions", sessionsRouter);
+app.use("/leagues", leaguesRouter);
 
 // Increase payload size for large files
 app.use(express.json({ limit: "6gb" }));

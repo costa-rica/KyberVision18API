@@ -124,7 +124,7 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
   }
 });
 
-// GET /sessions/:contractTeamUserId
+// GET /sessions/:teamId
 router.get("/:teamId", authenticateToken, async (req, res) => {
   console.log(`- in GET /sessions/${req.params.teamId}`);
 
@@ -133,22 +133,113 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
     console.log(`teamId: ${teamId}`);
 
     // 🔹 Find all Sessions linked to this teamId
-    const sessions = await Session.findAll({
+    const sessionsArray = await Session.findAll({
       where: { teamId },
-      attributes: ["id", "teamId", "createdAt", "updatedAt"],
+      attributes: [
+        "id",
+        "contractLeagueTeamId",
+        "teamId",
+        "sessionDate",
+        "createdAt",
+        "updatedAt",
+        "city",
+      ],
     });
 
-    console.log(`sessions: ${JSON.stringify(sessions)}`);
+    console.log(`sessionsArray: ${JSON.stringify(sessionsArray)}`);
 
-    if (sessions.length === 0) {
-      return res.json({ result: true, sessions: [] });
+    if (sessionsArray.length === 0) {
+      return res.json({ result: true, sessionsArray: [] });
     }
 
-    console.log(`✅ Found ${sessions.length} sessions`);
+    // console.log(`✅ Found ${sessions.length} sessions`);
+    console.log(
+      `sessionDate: ${sessionsArray[0].sessionDate} ${typeof sessionsArray[0]
+        .sessionDate}`
+    );
+    // Format sessionDateString for each session
+    const formattedSessionsArray = sessionsArray.map((session) => {
+      const date = new Date(session.sessionDate);
+      const day = date.getDate().toString().padStart(2, "0"); // "15"
+      const month = date.toLocaleString("fr-FR", { month: "short" }); // "mar"
+      const hour = date.getHours().toString().padStart(2, "0"); // "20"
+      const minute = date.getMinutes().toString().padStart(2, "0"); // "00"
 
-    res.json({ result: true, sessionsArray: sessions });
+      return {
+        ...session.toJSON(),
+        sessionDateString: `${day} ${month} ${hour}h${minute}`, // "15 mar 20h00"
+      };
+    });
+
+    res.json({ result: true, sessionsArray: formattedSessionsArray });
   } catch (error) {
     console.error("❌ Error fetching sessions for teamId:", error);
+    res.status(500).json({
+      result: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+// POST /sessions/create
+router.post("/create", authenticateToken, async (req, res) => {
+  console.log(`- in POST /sessions/create`);
+
+  try {
+    const { teamId, sessionDate, contractLeagueTeamId } = req.body;
+    const city = "Practice";
+    console.log(`teamId: ${teamId}`);
+    console.log(`sessionDate: ${sessionDate}`);
+    console.log(`city: ${city}`);
+    console.log(`contractLeagueTeamId: ${contractLeagueTeamId}`);
+
+    // 🔹 Create new Session
+    const sessionNew = await Session.create({
+      teamId,
+      sessionDate,
+      city,
+      contractLeagueTeamId,
+    });
+
+    console.log(`sessionNew: ${JSON.stringify(sessionNew)}`);
+
+    // // Format sessionDateString for each session
+    // const formattedSessionsArray = sessionsArray.map((session) => {
+    //   const date = new Date(session.sessionDate);
+    //   const day = date.getDate().toString().padStart(2, "0"); // "15"
+    //   const month = date.toLocaleString("fr-FR", { month: "short" }); // "mar"
+    //   const hour = date.getHours().toString().padStart(2, "0"); // "20"
+    //   const minute = date.getMinutes().toString().padStart(2, "0"); // "00"
+
+    //   return {
+    //     ...session.toJSON(),
+    //     sessionDateString: `${day} ${month} ${hour}h${minute}`, // "15 mar 20h00"
+    //   };
+    // });
+
+    // Format sessionDateString for sessionNew
+    const formattedSessionNew = {
+      ...sessionNew.toJSON(),
+      sessionDateString: `${sessionNew.sessionDate
+        .getDate()
+        .toString()
+        .padStart(2, "0")} ${sessionNew.sessionDate.toLocaleString("fr-FR", {
+        month: "short",
+      })} ${sessionNew.sessionDate
+        .getHours()
+        .toString()
+        .padStart(2, "0")}h${sessionNew.sessionDate
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`, // "15 mar 20h00"
+    };
+
+    console.log(`formattedSessionNew: ${JSON.stringify(formattedSessionNew)}`);
+
+    res.json({ result: true, sessionNew: formattedSessionNew });
+  } catch (error) {
+    console.error("❌ Error creating session:", error);
     res.status(500).json({
       result: false,
       message: "Internal server error",
