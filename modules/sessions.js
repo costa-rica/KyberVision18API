@@ -66,8 +66,7 @@ const deleteSession = async (sessionId) => {
 const getSessionWithTeams = async (sessionId) => {
   try {
     // Fetch match with team details
-    const session = await Session.findOne({
-      where: { id: sessionId },
+    const session = await Session.findByPk(sessionId, {
       include: [
         {
           model: Team,
@@ -102,6 +101,8 @@ const getSessionWithTeams = async (sessionId) => {
       return { success: false, error: "Session not found" };
     }
 
+    // console.log(session.dataValues);
+
     // Rename team attributes by prefixing them
     const formattedSession = {
       ...session.get(),
@@ -113,6 +114,10 @@ const getSessionWithTeams = async (sessionId) => {
 
     // Remove the nested team objects
     delete formattedSession.Team;
+
+    // console.log("--- formattedSession ------");
+    // console.log(formattedSession);
+    // console.log(" -----------------------------");
 
     return { success: true, session: formattedSession };
   } catch (error) {

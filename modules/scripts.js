@@ -1,3 +1,5 @@
+const { Script, ContractScriptVideo } = require("kybervision16db");
+
 // Accepts an array of action objects and a deltaTime (in seconds)
 // Returns the estimated start of video timestamp
 // Why: mobile device on selection of Match to Review (i.e ReviewMatchSelection.js)
@@ -22,6 +24,38 @@ function createEstimatedTimestampStartOfVideo(actions, deltaTime) {
   return estimatedStartOfVideo;
 }
 
+// async function updateSyncContractsWithVideoId(videoId, matchId) {
+async function updateContractScriptVideosWithVideoId(videoId, sessionId) {
+  const scripts = await Script.findAll({
+    where: { sessionId },
+  });
+
+  if (scripts.length === 0) {
+    console.log(`⚠️ No scripts found for sessionId: ${sessionId}`);
+  } else {
+    console.log(
+      `📜 Found ${scripts.length} script(s) for sessionId: ${sessionId}`
+    );
+  }
+
+  let contractScriptVideoUpdates = 0;
+
+  // For each script create a new row in syncContracts
+  Promise.all(
+    scripts.map(async (script) => {
+      const contractScriptVideo = await ContractScriptVideo.create({
+        scriptId: script.id,
+        videoId,
+        // deltaTime: 0.0,
+      });
+      contractScriptVideoUpdates++; // Increment the counter
+    })
+  );
+
+  return contractScriptVideoUpdates;
+}
+
 module.exports = {
   createEstimatedTimestampStartOfVideo,
+  updateContractScriptVideosWithVideoId,
 };
