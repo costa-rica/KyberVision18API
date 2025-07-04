@@ -4,6 +4,7 @@ const fs = require("fs");
 const { Video } = require("kybervision16db");
 const ffmpeg = require("fluent-ffmpeg");
 const axios = require("axios"); // Make sure Axios is installed: yarn add axios
+const { google } = require("googleapis");
 
 // Multer attaches an object representing the file to the request under the property req.file.
 // - Multer creates the req.file.filename property
@@ -86,6 +87,51 @@ const deleteVideo = async (videoId) => {
   }
 };
 
+async function deleteVideoFromYouTube(videoId) {
+  console.log(
+    `Verify variables: ${JSON.stringify({
+      videoId,
+      YOUTUBE_CLIENT_ID: process.env.YOUTUBE_CLIENT_ID,
+      YOUTUBE_CLIENT_SECRET: process.env.YOUTUBE_CLIENT_SECRET,
+      YOUTUBE_REDIRECT_URI: process.env.YOUTUBE_REDIRECT_URI,
+      YOUTUBE_REFRESH_TOKEN: process.env.YOUTUBE_REFRESH_TOKEN,
+    })}`
+  );
+
+  try {
+    const video = await Video.findByPk(videoId);
+
+    if (!video || !video.youTubeVideoId) {
+      throw new Error("Video not found or has no YouTube ID");
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.YOUTUBE_CLIENT_ID,
+      process.env.YOUTUBE_CLIENT_SECRET,
+      process.env.YOUTUBE_REDIRECT_URI
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: process.env.YOUTUBE_REFRESH_TOKEN,
+    });
+
+    const youtube = google.youtube({
+      version: "v3",
+      auth: oauth2Client,
+    });
+    console.log(`YouTube video ID: ${video.youTubeVideoId}`);
+    await youtube.videos.delete({
+      id: video.youTubeVideoId,
+    });
+
+    console.log(`✅ Deleted YouTube video ID: ${video.youTubeVideoId}`);
+    return { success: true, message: "YouTube video deleted successfully" };
+  } catch (err) {
+    console.error("❌ Error deleting video from YouTube:", err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 async function requestJobQueuerVideoUploaderYouTubeProcessing(
   filename,
   videoId
@@ -119,5 +165,6 @@ module.exports = {
   upload,
   renameVideoFile,
   deleteVideo,
+  deleteVideoFromYouTube,
   requestJobQueuerVideoUploaderYouTubeProcessing,
 };

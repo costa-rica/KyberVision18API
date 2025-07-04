@@ -8,6 +8,7 @@ const {
   requestJobQueuerVideoUploaderYouTubeProcessing,
   renameVideoFile,
   deleteVideo,
+  deleteVideoFromYouTube,
 } = require("../modules/videos");
 const path = require("path");
 const fs = require("fs");
@@ -177,6 +178,25 @@ router.post(
 router.delete("/:videoId", authenticateToken, async (req, res) => {
   try {
     const { videoId } = req.params;
+
+    const {
+      success: successYouTube,
+      message: messageYouTube,
+      error: errorYouTube,
+    } = await deleteVideoFromYouTube(videoId);
+    console.log(
+      `YouTube delete response: ${JSON.stringify({
+        successYouTube,
+        messageYouTube,
+        errorYouTube,
+      })}`
+    );
+    if (!successYouTube) {
+      return res.status(404).json({ errorYouTube });
+    } else {
+      console.log("YouTube video deleted successfully");
+      console.log("---> Deleting video from server and Db");
+    }
 
     const { success, message, error } = await deleteVideo(videoId);
 
