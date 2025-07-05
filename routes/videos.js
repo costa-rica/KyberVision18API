@@ -195,6 +195,9 @@ router.post(
         videoId
       );
     if (!result) {
+      newVideo.update({
+        processingFailed: true,
+      });
       return res
         .status(400)
         .json({ result: false, message: messageFromYouTubeQueuer });
