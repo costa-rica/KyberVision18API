@@ -157,6 +157,8 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
       `sessionDate: ${sessionsArray[0].sessionDate} ${typeof sessionsArray[0]
         .sessionDate}`
     );
+
+    // ---- KEEP THIS ------
     // Format sessionDateString for each session
     const formattedSessionsArray = sessionsArray.map((session) => {
       const date = new Date(session.sessionDate);
@@ -168,8 +170,10 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
       return {
         ...session.toJSON(),
         sessionDateString: `${day} ${month} ${hour}h${minute}`, // "15 mar 20h00"
+        sessionDate: date,
       };
     });
+    // ---- [end] KEEP THIS ------
 
     res.json({ result: true, sessionsArray: formattedSessionsArray });
   } catch (error) {
