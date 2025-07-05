@@ -1,7 +1,7 @@
 const express = require("express");
 const { authenticateToken } = require("../modules/userAuthentication");
 const router = express.Router();
-const { Video, ContractTeamUser } = require("kybervision16db");
+const { Video, ContractTeamUser, Session } = require("kybervision16db");
 const { getSessionWithTeams } = require("../modules/sessions");
 const {
   upload,
@@ -105,7 +105,7 @@ router.post(
 
     const { sessionId } = req.body;
     const user = req.user;
-    console.log(`user: ${JSON.stringify(user)}`);
+    // console.log(`user: ${JSON.stringify(user)}`);
 
     // Validate required fields
     if (!sessionId) {
@@ -120,13 +120,35 @@ router.post(
         .json({ result: false, message: "No video file uploaded" });
     }
 
-    // Step 1: Get video file size in MB
+    // Step 1: verify user has privileges to upload video for this session
+    // Get teamId of session
+    const session = await Session.findByPk(sessionId);
+
+    // Verify user is associated with teamId in ContractTeamUser
+    const contractTeamUser = await ContractTeamUser.findOne({
+      where: {
+        teamId: session.teamId,
+        userId: user.id,
+      },
+    });
+    // -- if not row with teamId and userId, return error: user does not have privileges to upload video for this session
+    // -- if row with teamId and userId, continue by const contractTeamUserId = row.id
+    if (!contractTeamUser) {
+      return res.status(403).json({
+        result: false,
+        message:
+          "User does not have privileges to upload video for this session",
+      });
+    }
+    const contractTeamUserId = contractTeamUser.id;
+
+    // Step 2: Get video file size in MB
     const fileSizeBytes = req.file.size;
     const fileSizeMb = (fileSizeBytes / (1024 * 1024)).toFixed(2);
 
     console.log(`📁 Video File Size: ${fileSizeMb} MB`);
 
-    // Step 2: Create video entry with placeholder URL & file size
+    // Step 3: Create video entry with placeholder URL & file size
     const newVideo = await Video.create({
       sessionId: parseInt(sessionId, 10),
       filename: req.file.filename,
@@ -135,18 +157,19 @@ router.post(
       pathToVideoFile: process.env.PATH_VIDEOS_UPLOADED,
       // processingStatus: "pending",
       originalVideoFilename: req.file.originalname,
+      contractTeamUserId: contractTeamUserId,
     });
     // console.log("---- user ---");
     // console.log(user);
 
-    // Step 2.1: Rename the uploaded file
+    // Step 3.1: Rename the uploaded file
     const renamedFilename = renameVideoFile(newVideo.id, sessionId, user.id);
     const renamedFilePath = path.join(
       process.env.PATH_VIDEOS_UPLOADED,
       renamedFilename
     );
 
-    // Step 2.2:Rename the file
+    // Step 3.2:Rename the file
     fs.renameSync(
       path.join(process.env.PATH_VIDEOS_UPLOADED, req.file.filename),
       renamedFilePath
@@ -155,7 +178,7 @@ router.post(
       filename: renamedFilename,
     });
 
-    // Step 3: Generate and update video URL
+    // Step 4: Generate and update video URL
     const videoURL = `https://${req.get("host")}/videos/${newVideo.id}`;
     await newVideo.update({ url: videoURL });
 
@@ -166,11 +189,17 @@ router.post(
 
     const videoId = newVideo.id;
     // Step 6: spawn KyberVision14YouTuber child process
-    await requestJobQueuerVideoUploaderYouTubeProcessing(
-      renamedFilename,
-      videoId
-    );
-    return res.json({ result: true });
+    const { result, messageFromYouTubeQueuer } =
+      await requestJobQueuerVideoUploaderYouTubeProcessing(
+        renamedFilename,
+        videoId
+      );
+    if (!result) {
+      return res
+        .status(400)
+        .json({ result: false, message: messageFromYouTubeQueuer });
+    }
+    return res.json({ result: true, message: "All good." });
   }
 );
 
@@ -192,10 +221,7 @@ router.delete("/:videoId", authenticateToken, async (req, res) => {
       })}`
     );
     if (!successYouTube) {
-      return res.status(404).json({ errorYouTube });
-    } else {
-      console.log("YouTube video deleted successfully");
-      console.log("---> Deleting video from server and Db");
+      console.log("-- No YouTube video to delete");
     }
 
     const { success, message, error } = await deleteVideo(videoId);

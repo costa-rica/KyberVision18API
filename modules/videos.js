@@ -76,6 +76,7 @@ const deleteVideo = async (videoId) => {
           `❌ Error deleting file ${filePathToVideoFileInUpload}:`,
           err
         );
+        return { success: false, error: err.message };
       }
     });
 
@@ -127,7 +128,10 @@ async function deleteVideoFromYouTube(videoId) {
     console.log(`✅ Deleted YouTube video ID: ${video.youTubeVideoId}`);
     return { success: true, message: "YouTube video deleted successfully" };
   } catch (err) {
-    console.error("❌ Error deleting video from YouTube:", err.message);
+    console.log(
+      "Error (not critical) deleting video from YouTube:",
+      err.message
+    );
     return { success: false, error: err.message };
   }
 }
@@ -152,12 +156,20 @@ async function requestJobQueuerVideoUploaderYouTubeProcessing(
       throw new Error(`❌ Failed to queue YouTube upload job: ${text}`);
     }
 
-    const result = await response.json();
-    console.log("✅ Queuer YouTube response:", result);
-    return result;
+    const responseJson = await response.json();
+    console.log("✅ Queuer YouTube response:", responseJson);
+    // return result;
+    return {
+      result: true,
+      messageFromYouTubeQueuer: "YouTube video uploaded successfully",
+    };
   } catch (err) {
     console.error("❌ Error contacting YouTube Queuer:", err.message);
-    throw err;
+    // throw err;
+    return {
+      result: false,
+      messageFromYouTubeQueuer: `Is KyberVisionQueuer running? Error from attempt to contact Queuer: ${err.message}`,
+    };
   }
 }
 

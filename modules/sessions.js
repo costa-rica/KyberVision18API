@@ -78,24 +78,6 @@ const getSessionWithTeams = async (sessionId) => {
         exclude: ["teamId", "contractLeagueTeamId"],
       },
     });
-    // const session = await Session.findOne({
-    //   where: { id: sessionId },
-    //   include: [
-    //     {
-    //       model: Team,
-    //       include: [
-    //         {
-    //           model: Team,
-    //           attributes: ["id", "teamName", "city", "coachName"],
-    //           required: true,
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   attributes: {
-    //     exclude: ["teamId", "contractLeagueTeamId"], // Exclude these fields from match details
-    //   },
-    // });
 
     if (!session) {
       return { success: false, error: "Session not found" };
