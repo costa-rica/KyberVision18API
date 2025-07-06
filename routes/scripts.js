@@ -19,6 +19,11 @@ router.post("/receive-actions-array", authenticateToken, async (req, res) => {
   //   let { actionsArray, matchId, scriptId } = req.body;
   let { actionsArray, sessionId, scriptId } = req.body;
 
+  console.log(`--------- sessionId: ${sessionId}, scriptId: ${scriptId} ----`);
+  console.log(`actionsArray: ${JSON.stringify(actionsArray)}`);
+  console.log(
+    `--------- END sessionId: ${sessionId}, scriptId: ${scriptId} ----`
+  );
   try {
     if (!scriptId) {
       // Create a new script
