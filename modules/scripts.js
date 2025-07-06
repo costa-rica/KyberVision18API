@@ -1,9 +1,9 @@
 const { Script, ContractScriptVideo } = require("kybervision16db");
 
-// Accepts an array of action objects and a deltaTime (in seconds)
+// Accepts an array of action objects and a deltaTimeInSeconds (in seconds)
 // Returns the estimated start of video timestamp
 // Why: mobile device on selection of Match to Review (i.e ReviewMatchSelection.js)
-function createEstimatedTimestampStartOfVideo(actions, deltaTime) {
+function createEstimatedTimestampStartOfVideo(actions, deltaTimeInSeconds) {
   if (!Array.isArray(actions) || actions.length === 0) {
     return null;
   }
@@ -16,9 +16,9 @@ function createEstimatedTimestampStartOfVideo(actions, deltaTime) {
   // First recorded action timestamp as a Date object
   const firstActionTimestamp = new Date(sortedActions[0].timestamp);
 
-  // Subtract deltaTime (convert seconds to milliseconds)
+  // Subtract deltaTimeInSeconds (convert seconds to milliseconds)
   const estimatedStartOfVideo = new Date(
-    firstActionTimestamp.getTime() - deltaTime * 1000
+    firstActionTimestamp.getTime() - deltaTimeInSeconds * 1000
   );
 
   return estimatedStartOfVideo;
@@ -46,7 +46,7 @@ async function updateContractScriptVideosWithVideoId(videoId, sessionId) {
       const contractScriptVideo = await ContractScriptVideo.create({
         scriptId: script.id,
         videoId,
-        // deltaTime: 0.0,
+        // deltaTimeInSeconds: 0.0,
       });
       contractScriptVideoUpdates++; // Increment the counter
     })

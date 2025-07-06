@@ -63,7 +63,8 @@ const deleteVideo = async (videoId) => {
 
     fs.unlink(filePathToVideoFile, (err) => {
       if (err) {
-        console.error(`❌ Error deleting file ${filePath}:`, err);
+        // console.error(`❌ Error deleting file ${filePath}:`, err);
+        console.error(`❌ Error deleting file ${filePathToVideoFile}:`, err);
       }
     });
     const filePathToVideoFileInUpload = path.join(

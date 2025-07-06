@@ -42,7 +42,7 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
     // 🔹 Find all ContractScriptVideos associated with these Scripts
     const contractScriptVideos = await ContractScriptVideo.findAll({
       where: { scriptId: scriptIds },
-      attributes: ["id", "scriptId", "deltaTime"], // Need deltaTime per ContractScriptVideo
+      attributes: ["id", "scriptId", "deltaTimeInSeconds"], // Need deltaTimeInSeconds per ContractScriptVideo
     });
 
     // console.log(`contractScriptVideos: ${JSON.stringify(contractScriptVideos)}`);
@@ -56,14 +56,14 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
 
     console.log(`✅ Found ${contractScriptVideos.length} ContractScriptVideos`);
 
-    // Create a mapping of scriptId → deltaTime
-    const deltaTimeMap = {};
+    // Create a mapping of scriptId → deltaTimeInSeconds
+    const deltaTimeInSecondsMap = {};
     contractScriptVideos.forEach((sc) => {
-      // deltaTimeMap[sc.id] = sc.deltaTime || 0.0; // Default 0.0 if undefined
-      deltaTimeMap[sc.scriptId] = sc.deltaTime || 0.0; // Default 0.0 if undefined
+      // deltaTimeInSecondsMap[sc.id] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
+      deltaTimeInSecondsMap[sc.scriptId] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
     });
 
-    // console.log(`📊 DeltaTime mapping:`, deltaTimeMap);
+    // console.log(`📊 deltaTimeInSeconds mapping:`, deltaTimeInSecondsMap);
 
     // 🔹 Find all Actions linked to these ContractScriptVideos
     const actions = await Action.findAll({
@@ -79,12 +79,13 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
 
     console.log(`✅ Found ${actions.length} actions`);
 
-    // Compute estimated start of video timestamp per action’s ContractScriptVideo deltaTime
+    // Compute estimated start of video timestamp per action’s ContractScriptVideo deltaTimeInSeconds
     const updatedActions = actions.map((action, index) => {
-      const actionDeltaTime = deltaTimeMap[action.scriptId] || 0.0; // Get deltaTime per action’s ContractScriptVideo
+      const actiondeltaTimeInSeconds =
+        deltaTimeInSecondsMap[action.scriptId] || 0.0; // Get deltaTimeInSeconds per action’s ContractScriptVideo
       const estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(
         actions,
-        actionDeltaTime
+        actiondeltaTimeInSeconds
       );
 
       return {
@@ -96,7 +97,7 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
     });
 
     console.log(
-      `✅ Updated ${updatedActions.length} actions with correct deltaTimes`
+      `✅ Updated ${updatedActions.length} actions with correct deltaTimeInSecondss`
     );
 
     const uniqueListOfPlayerNamesArray = await createUniquePlayerNamesArray(
