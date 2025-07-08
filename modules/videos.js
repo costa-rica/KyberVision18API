@@ -174,10 +174,63 @@ async function requestJobQueuerVideoUploaderYouTubeProcessing(
   }
 }
 
+async function requestJobQueuerVideoMontageMaker(
+  filename,
+  actionsArray,
+  user,
+  token
+) {
+  try {
+    const response = await fetch(
+      `${process.env.URL_KV_JOB_QUEUER}/video-montage-maker/add`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename,
+          actionsArray,
+          user,
+          token,
+        }),
+      }
+    );
+
+    const resultText = await response.text(); // handle both JSON and text
+
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        message: `Queuer responded with error: ${resultText}`,
+      };
+    }
+
+    let resultData;
+    try {
+      resultData = JSON.parse(resultText);
+    } catch (err) {
+      resultData = resultText; // fallback if response is not JSON
+    }
+
+    return {
+      success: true,
+      status: response.status,
+      data: resultData,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      status: 500,
+      message: `Error contacting montage queuer: ${err.message}`,
+    };
+  }
+}
+
 module.exports = {
   upload,
   renameVideoFile,
   deleteVideo,
   deleteVideoFromYouTube,
   requestJobQueuerVideoUploaderYouTubeProcessing,
+  requestJobQueuerVideoMontageMaker,
 };

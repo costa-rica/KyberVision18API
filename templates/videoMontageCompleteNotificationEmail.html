@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Montage Completed - Kyber Vision</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        p {
+            color: #555;
+            font-size: 16px;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .button-container {
+            display: flex;
+            /* justify-content: space-around; */
+            gap: 10px;
+            /* width: 100%; */
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="https://kybervision.eu/">
+            <img class="logo" src="https://api.kv11.dashanddata.com/images/KyberV2Shiny.png" alt="Kyber Vision Logo">
+        </a>
+
+        <h2>Your Video Montage is Ready! 🎬</h2>
+        
+<div style="display: flex; justify-content: space-around; gap: 10px; width: 100%;">
+
+    <div style="padding: 0 50px">
+
+        <a class="button" href="{{montageUrlPlay}}" 
+       style="display: inline-block; padding: 10px 20px; font-size: 16px; 
+              color: #FFFFFF !important; background-color: #007BFF !important; 
+              text-decoration: none; border-radius: 5px; 
+              border: 2px solid #007BFF;">
+        Watch
+    </a>
+    </div>
+    <div style="padding: 0 50px">
+
+        <a class="button" href="{{montageUrlDownload}}" 
+        style="display: inline-block; padding: 10px 20px; font-size: 16px; 
+               color: #FFFFFF !important; background-color: #007BFF !important; 
+               text-decoration: none; border-radius: 5px; 
+               border: 2px solid #007BFF;">
+         Download
+        </a>
+    </div>
+</div>
+
+
+
+
+        <p>If the button does not work, copy and paste the following link into your browser</p>
+        <ul>
+            <li>Watch: 
+                <ul>
+                    <li style="list-style-type: none;">
+                        <a href="{{montageUrlPlay}}" style="font-size: 10px">{{montageUrlPlay}}</a>
+                    </li>
+                </ul>
+            </li>
+            <li>Download: 
+                <ul>
+                    <li style="list-style-type: none;">
+                        <a href="{{montageUrlDownload}}" style="font-size: 10px">{{montageUrlDownload}}</a>
+                    </li>
+                </ul></li>
+        </ul>
+        
+
+        <hr>
+        <p class="footer">For more information, visit our website: 
+            <a href="https://kybervision.eu/">https://kybervision.eu/</a>
+        </p>
+    </div>
+</body>
+</html>
