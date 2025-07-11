@@ -147,17 +147,17 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
       ],
     });
 
-    console.log(`sessionsArray: ${JSON.stringify(sessionsArray)}`);
+    // console.log(`sessionsArray: ${JSON.stringify(sessionsArray)}`);
 
     if (sessionsArray.length === 0) {
       return res.json({ result: true, sessionsArray: [] });
     }
 
     // console.log(`✅ Found ${sessions.length} sessions`);
-    console.log(
-      `sessionDate: ${sessionsArray[0].sessionDate} ${typeof sessionsArray[0]
-        .sessionDate}`
-    );
+    // console.log(
+    //   `sessionDate: ${sessionsArray[0].sessionDate} ${typeof sessionsArray[0]
+    //     .sessionDate}`
+    // );
 
     // ---- KEEP THIS ------
     // Format sessionDateString for each session
@@ -175,6 +175,10 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
       };
     });
     // ---- [end] KEEP THIS ------
+
+    // console.log(
+    //   `formattedSessionsArray: ${JSON.stringify(formattedSessionsArray)}`
+    // );
 
     res.json({ result: true, sessionsArray: formattedSessionsArray });
   } catch (error) {
