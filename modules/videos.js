@@ -90,15 +90,15 @@ const deleteVideo = async (videoId) => {
 };
 
 async function deleteVideoFromYouTube(videoId) {
-  console.log(
-    `Verify variables: ${JSON.stringify({
-      videoId,
-      YOUTUBE_CLIENT_ID: process.env.YOUTUBE_CLIENT_ID,
-      YOUTUBE_CLIENT_SECRET: process.env.YOUTUBE_CLIENT_SECRET,
-      YOUTUBE_REDIRECT_URI: process.env.YOUTUBE_REDIRECT_URI,
-      YOUTUBE_REFRESH_TOKEN: process.env.YOUTUBE_REFRESH_TOKEN,
-    })}`
-  );
+  // console.log(
+  //   `Verify variables: ${JSON.stringify({
+  //     videoId,
+  //     YOUTUBE_CLIENT_ID: process.env.YOUTUBE_CLIENT_ID,
+  //     YOUTUBE_CLIENT_SECRET: process.env.YOUTUBE_CLIENT_SECRET,
+  //     YOUTUBE_REDIRECT_URI: process.env.YOUTUBE_REDIRECT_URI,
+  //     YOUTUBE_REFRESH_TOKEN: process.env.YOUTUBE_REFRESH_TOKEN,
+  //   })}`
+  // );
 
   try {
     const video = await Video.findByPk(videoId);

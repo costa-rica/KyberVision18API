@@ -451,4 +451,37 @@ router.get(
   }
 );
 
+// GET /videos/user/:userId
+router.get("/user/", authenticateToken, async (req, res) => {
+  try {
+    // const { userId } = req.params;
+    const user = req.user;
+    const videosArray = await Video.findAll({
+      include: [
+        {
+          model: ContractTeamUser,
+          // where: { teamId: parseInt(teamId, 10) },
+          where: { userId: user.id },
+          attributes: ["id", "teamId", "userId"], // optional: include related info
+        },
+      ],
+    });
+
+    // Process videos to include match & team details
+    const formattedVideos = await Promise.all(
+      videosArray.map(async (video) => {
+        const sessionData = await getSessionWithTeams(video.sessionId);
+        return {
+          ...video.get(), // Extract raw video data
+          session: sessionData.success ? sessionData.session : null, // Include session data if successful
+        };
+      })
+    );
+    res.json({ result: true, videosArray: formattedVideos });
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;
