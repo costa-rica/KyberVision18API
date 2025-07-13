@@ -257,4 +257,49 @@ router.post("/create", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /sessions/:sessionId/script-and-actions-for-syncing
+router.get(
+  "/:sessionId/script-and-actions-for-syncing",
+  authenticateToken,
+  async (req, res) => {
+    console.log("in GET script-and-actions-for-syncing");
+    try {
+      const { sessionId } = req.params;
+      // const sessionId = 2;
+
+      // 🔹 Find all Scripts linked to this sessionId
+      const scriptsArray = await Script.findAll({
+        where: { sessionId },
+        attributes: ["id"], // Only need script IDs
+      });
+
+      const actionsArray = await Action.findAll({
+        where: { scriptId: scriptsArray.map((script) => script.id) },
+        // where: { scriptId: 55 },
+        // attributes: ["id", "timestamp", "actionType", "actionValue"], // Only need action IDs
+      });
+
+      const formattedScriptsArray = scriptsArray.map((script) => {
+        return {
+          scriptId: script.id,
+          actionsArray: actionsArray.filter(
+            (action) => action.scriptId === script.id
+          ),
+        };
+      });
+
+      // console.log(`sessionId: ${sessionId}`);
+      // console.log(`scripts: ${JSON.stringify(scriptsArray)}`);
+      res.json({ result: true, sessionId, formattedScriptsArray });
+    } catch (error) {
+      console.error("❌ Error fetching actions for session:", error);
+      res.status(500).json({
+        result: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+    }
+  }
+);
+
 module.exports = router;
