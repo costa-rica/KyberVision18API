@@ -279,9 +279,21 @@ router.get(
         // attributes: ["id", "timestamp", "actionType", "actionValue"], // Only need action IDs
       });
 
+      const contractScriptVideosArray = await ContractScriptVideo.findAll({
+        where: { scriptId: scriptsArray.map((script) => script.id) },
+      });
+      console.log(
+        `contractScriptVideosArray: ${JSON.stringify(
+          contractScriptVideosArray
+        )}`
+      );
+
       const formattedScriptsArray = scriptsArray.map((script) => {
         return {
           scriptId: script.id,
+          deltaTimeInSeconds: contractScriptVideosArray.find(
+            (contractScriptVideo) => contractScriptVideo.scriptId === script.id
+          ).deltaTimeInSeconds,
           actionsArray: actionsArray.filter(
             (action) => action.scriptId === script.id
           ),
