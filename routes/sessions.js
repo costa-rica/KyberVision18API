@@ -289,11 +289,14 @@ router.get(
       );
 
       const formattedScriptsArray = scriptsArray.map((script) => {
+        const contractScriptVideoObj = contractScriptVideosArray.find(
+          (contractScriptVideo) => contractScriptVideo.scriptId === script.id
+        );
+
         return {
           scriptId: script.id,
-          deltaTimeInSeconds: contractScriptVideosArray.find(
-            (contractScriptVideo) => contractScriptVideo.scriptId === script.id
-          ).deltaTimeInSeconds,
+          deltaTimeInSeconds: contractScriptVideoObj.deltaTimeInSeconds,
+          contractScriptVideoId: contractScriptVideoObj.id,
           actionsArray: actionsArray.filter(
             (action) => action.scriptId === script.id
           ),
