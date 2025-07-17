@@ -22,7 +22,7 @@ const {
   // SyncContract,
   ContractScriptVideo,
   Team,
-} = require("kybervision16db");
+} = require("kybervision17db");
 const models = {
   User,
   Video,

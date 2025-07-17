@@ -1,4 +1,4 @@
-const { ContractScriptVideo } = require("kybervision16db");
+const { ContractScriptVideo } = require("kybervision17db");
 const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../modules/userAuthentication");

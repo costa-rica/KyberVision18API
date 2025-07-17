@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { User } = require("kybervision16db");
+const { User } = require("kybervision17db");
 
 async function authenticateToken(req, res, next) {
   if (process.env.AUTHENTIFICATION_TURNED_OFF === "true") {

@@ -10,7 +10,7 @@
 APP_NAME=KyberVision17API
 JWT_SECRET=secret_code
 PATH_DATABASE=Users/nickrodriguez/Documents/KyberVision17API/databases/KyberVision17API/
-NAME_DB=kv16.db
+NAME_DB=kv17.db
 PATH_VIDEOS=/Users/nickrodriguez/Documents/_project_resources/KyberVision17API/session_videos
 PATH_VIDEOS_UPLOADED=/Users/nickrodriguez/Documents/_project_resources/KyberVision17API/session_videos/uploaded
 PATH_VIDEOS_MONTAGE_CLIPS=/Users/nickrodriguez/Documents/_project_resources/KyberVision17API/session_videos/montage_clips
@@ -20,7 +20,7 @@ ADMIN_EMAIL_PASSWORD="secret_code"
 PATH_DB_BACKUPS=/Users/nickrodriguez/Documents/_project_resources/KyberVision17API/db_backups
 PATH_PROJECT_RESOURCES=/Users/nickrodriguez/Documents/_project_resources/KyberVision17API
 ADMIN_EMAIL_KV_MANAGER_WEBSITE=["nrodrig1@gmail.com"]
-URL_KV_MANAGER_WEBSITE=https://kv16-manager.dashanddata.com
+URL_KV_MANAGER_WEBSITE=https://kv17-manager.dashanddata.com
 URL_KV_JOB_QUEUER=http://localhost:8003
 PATH_KV_VIDEO_PROCESSOR=/Users/nickrodriguez/Documents/KyberVisionVideoProcessor01
 NAME_KV_VIDEO_PROCESSOR=videoProcessor.js

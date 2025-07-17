@@ -7,7 +7,7 @@ const {
   Script,
   //   SyncContract,
   ContractScriptVideo,
-} = require("kybervision16db");
+} = require("kybervision17db");
 
 const { authenticateToken } = require("../modules/userAuthentication");
 

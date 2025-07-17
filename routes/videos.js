@@ -5,7 +5,7 @@ const {
   detokenizeObject,
 } = require("../modules/userAuthentication");
 const router = express.Router();
-const { Video, ContractTeamUser, Session, User } = require("kybervision16db");
+const { Video, ContractTeamUser, Session, User } = require("kybervision17db");
 const { getSessionWithTeams } = require("../modules/sessions");
 const {
   upload,

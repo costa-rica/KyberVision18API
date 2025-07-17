@@ -1281,7 +1281,7 @@ jws@^4.0.0:
     jwa "^2.0.0"
     safe-buffer "^5.0.1"
 
-"kybervision16db@file:../KyberVision16Db":
+"kybervision17db@file:../KyberVision17Db":
   version "1.0.0"
   dependencies:
     sequelize "^6.37.6"

@@ -1,4 +1,4 @@
-const { User, Team, Session, League } = require("kybervision16db");
+const { User, Team, Session, League } = require("kybervision17db");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const { createNewTeam } = require("./teams");

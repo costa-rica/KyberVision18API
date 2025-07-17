@@ -5,7 +5,7 @@ const {
   Script,
   ContractScriptVideo,
   Session,
-} = require("kybervision16db");
+} = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 const { createEstimatedTimestampStartOfVideo } = require("../modules/scripts");
 const {

@@ -24,7 +24,7 @@ const {
   // SyncContract,
   ContractScriptVideo,
   Team,
-} = require("kybervision16db");
+} = require("kybervision17db");
 
 const { promisify } = require("util");
 const archiver = require("archiver");

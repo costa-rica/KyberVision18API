@@ -1,6 +1,6 @@
 const express = require("express");
 var router = express.Router();
-const { League, ContractLeagueTeam } = require("kybervision16db");
+const { League, ContractLeagueTeam } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 
 // GET /leagues

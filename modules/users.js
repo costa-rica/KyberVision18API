@@ -1,4 +1,4 @@
-const { Team, ContractTeamUser } = require("kybervision16db");
+const { Team, ContractTeamUser } = require("kybervision17db");
 
 async function addUserToFreeAgentTeam(userId) {
   try {

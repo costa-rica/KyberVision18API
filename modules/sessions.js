@@ -4,7 +4,7 @@ const {
   League,
   Session,
   Team,
-} = require("kybervision16db");
+} = require("kybervision17db");
 
 async function createSessionWithFreeAgentLeague(teamId) {
   try {
