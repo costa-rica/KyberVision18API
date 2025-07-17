@@ -17,7 +17,7 @@ const {
 } = require("../modules/videos");
 const path = require("path");
 const fs = require("fs");
-const { updateContractScriptVideosWithVideoId } = require("../modules/scripts");
+// const {updateContractScriptVideosWithVideoId} = require("../modules/scripts");
 const {
   sendVideoMontageCompleteNotificationEmail,
 } = require("../modules/mailer");
@@ -192,10 +192,10 @@ router.post(
     const videoURL = `https://${req.get("host")}/videos/${newVideo.id}`;
     await newVideo.update({ url: videoURL });
 
-    // Step 5: Loop through all scripts and update ContractScriptVideos
-    // let syncContractUpdates = await updateSyncContractsWithVideoId(
-    let contractScriptVideoUpdates =
-      await updateContractScriptVideosWithVideoId(newVideo.id, sessionId);
+    // // Step 5: Loop through all scripts and update ContractScriptVideos
+    // // let syncContractUpdates = await updateSyncContractsWithVideoId(
+    // let contractScriptVideoUpdates =
+    //   await updateContractScriptVideosWithVideoId(newVideo.id, sessionId);
 
     const videoId = newVideo.id;
     // Step 6: spawn KyberVision14YouTuber child process

@@ -1,4 +1,4 @@
-const { Script, ContractScriptVideo } = require("kybervision17db");
+// const { Script, ContractScriptVideo } = require("kybervision17db");
 
 // Accepts an array of action objects and a deltaTimeInSeconds (in seconds)
 // Returns the estimated start of video timestamp
@@ -24,38 +24,38 @@ function createEstimatedTimestampStartOfVideo(actions, deltaTimeInSeconds) {
   return estimatedStartOfVideo;
 }
 
-// async function updateSyncContractsWithVideoId(videoId, matchId) {
-async function updateContractScriptVideosWithVideoId(videoId, sessionId) {
-  const scripts = await Script.findAll({
-    where: { sessionId },
-  });
+// // async function updateSyncContractsWithVideoId(videoId, matchId) {
+// async function updateContractScriptVideosWithVideoId(videoId, sessionId) {
+//   const scripts = await Script.findAll({
+//     where: { sessionId },
+//   });
 
-  if (scripts.length === 0) {
-    console.log(`⚠️ No scripts found for sessionId: ${sessionId}`);
-  } else {
-    console.log(
-      `📜 Found ${scripts.length} script(s) for sessionId: ${sessionId}`
-    );
-  }
+//   if (scripts.length === 0) {
+//     console.log(`⚠️ No scripts found for sessionId: ${sessionId}`);
+//   } else {
+//     console.log(
+//       `📜 Found ${scripts.length} script(s) for sessionId: ${sessionId}`
+//     );
+//   }
 
-  let contractScriptVideoUpdates = 0;
+//   let contractScriptVideoUpdates = 0;
 
-  // For each script create a new row in syncContracts
-  Promise.all(
-    scripts.map(async (script) => {
-      const contractScriptVideo = await ContractScriptVideo.create({
-        scriptId: script.id,
-        videoId,
-        // deltaTimeInSeconds: 0.0,
-      });
-      contractScriptVideoUpdates++; // Increment the counter
-    })
-  );
+//   // For each script create a new row in syncContracts
+//   Promise.all(
+//     scripts.map(async (script) => {
+//       const contractScriptVideo = await ContractScriptVideo.create({
+//         scriptId: script.id,
+//         videoId,
+//         // deltaTimeInSeconds: 0.0,
+//       });
+//       contractScriptVideoUpdates++; // Increment the counter
+//     })
+//   );
 
-  return contractScriptVideoUpdates;
-}
+//   return contractScriptVideoUpdates;
+// }
 
 module.exports = {
   createEstimatedTimestampStartOfVideo,
-  updateContractScriptVideosWithVideoId,
+  // updateContractScriptVideosWithVideoId,
 };

@@ -39,37 +39,51 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
     const scriptIds = scripts.map((script) => script.id);
     // console.log(`scriptIds: ${scriptIds}`);
 
-    // 🔹 Find all ContractScriptVideos associated with these Scripts
-    const contractScriptVideos = await ContractScriptVideo.findAll({
+    // 🔹 Find all Actions linked to these Scripts
+    const actionsArray = await Action.findAll({
       where: { scriptId: scriptIds },
-      attributes: ["id", "scriptId", "deltaTimeInSeconds"], // Need deltaTimeInSeconds per ContractScriptVideo
+      order: [["timestamp", "ASC"]],
+      include: [ContractActionVideo],
     });
+
+    // // Find all contractActionVideo linked to these Actions
+    // const contractActionVideosArray = await ContractActionVideo.findAll({
+    //   where: { actionId: actionsArray.map((action) => action.id) },
+    // });
+
+    // console.log(`contractActionVideosArray: ${JSON.stringify(contractActionVideosArray)}`);
+
+    // // 🔹 Find all ContractScriptVideos associated with these Scripts
+    // const contractScriptVideos = await ContractScriptVideo.findAll({
+    //   where: { scriptId: scriptIds },
+    //   attributes: ["id", "scriptId", "deltaTimeInSeconds"], // Need deltaTimeInSeconds per ContractScriptVideo
+    // });
 
     // console.log(`contractScriptVideos: ${JSON.stringify(contractScriptVideos)}`);
 
-    if (contractScriptVideos.length === 0) {
-      return res.status(404).json({
-        result: false,
-        message: "No ContractScriptVideos found for this session.",
-      });
-    }
+    // if (contractActionVideosArray.length === 0) {
+    //   return res.status(404).json({
+    //     result: false,
+    //     message: "No ContractActionVideos found for this session.",
+    //   });
+    // }
 
-    console.log(`✅ Found ${contractScriptVideos.length} ContractScriptVideos`);
+    // console.log(`✅ Found ${contractScriptVideos.length} ContractScriptVideos`);
 
-    // Create a mapping of scriptId → deltaTimeInSeconds
-    const deltaTimeInSecondsMap = {};
-    contractScriptVideos.forEach((sc) => {
-      // deltaTimeInSecondsMap[sc.id] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
-      deltaTimeInSecondsMap[sc.scriptId] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
-    });
+    // // Create a mapping of scriptId → deltaTimeInSeconds
+    // const deltaTimeInSecondsMap = {};
+    // contractScriptVideos.forEach((sc) => {
+    //   // deltaTimeInSecondsMap[sc.id] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
+    //   deltaTimeInSecondsMap[sc.scriptId] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
+    // });
 
     // console.log(`📊 deltaTimeInSeconds mapping:`, deltaTimeInSecondsMap);
 
-    // 🔹 Find all Actions linked to these ContractScriptVideos
-    const actions = await Action.findAll({
-      where: { scriptId: scriptIds },
-      order: [["timestamp", "ASC"]],
-    });
+    // // 🔹 Find all Actions linked to these ContractScriptVideos
+    // const actions = await Action.findAll({
+    //   where: { scriptId: scriptIds },
+    //   order: [["timestamp", "ASC"]],
+    // });
 
     // console.log(`actions: ${JSON.stringify(actions)}`);
 
@@ -80,13 +94,13 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
     console.log(`✅ Found ${actions.length} actions`);
 
     // Compute estimated start of video timestamp per action’s ContractScriptVideo deltaTimeInSeconds
-    const updatedActions = actions.map((action, index) => {
-      const actiondeltaTimeInSeconds =
+    const updatedActions = actionsArray.map((action, index) => {
+      const actionDeltaTimeInSeconds =
         deltaTimeInSecondsMap[action.scriptId] || 0.0; // Get deltaTimeInSeconds per action’s ContractScriptVideo
-      const estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(
-        actions,
-        actiondeltaTimeInSeconds
-      );
+      // const estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(
+      //   actions,
+      //   actiondeltaTimeInSeconds
+      // );
 
       return {
         ...action.toJSON(),

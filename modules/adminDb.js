@@ -22,7 +22,8 @@ const {
   Point,
   Script,
   // SyncContract,
-  ContractScriptVideo,
+  // ContractScriptVideo,
+  ContractActionVideo,
   Team,
 } = require("kybervision17db");
 
@@ -51,7 +52,8 @@ const models = {
   Point,
   Script,
   // SyncContract,
-  ContractScriptVideo,
+  // ContractScriptVideo,
+  ContractActionVideo,
   Team,
 };
 
