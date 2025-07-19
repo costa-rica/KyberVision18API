@@ -1,0 +1,52 @@
+const express = require("express");
+var router = express.Router();
+const { Team, Player, ContractTeamPlayer } = require("kybervision17db");
+const { authenticateToken } = require("../modules/userAuthentication");
+
+// GET /teams
+router.get("/", authenticateToken, async (req, res) => {
+  console.log("- accessed GET /teams");
+
+  const teams = await Team.findAll();
+  console.log(`- we have ${teams.length} teams`);
+  res.json({ result: true, teams });
+});
+
+// POST /teams/create
+router.post("/create", authenticateToken, async (req, res) => {
+  console.log("- accessed POST /teams/create");
+
+  const { teamName, description, playersArray } = req.body;
+  console.log(`teamName: ${teamName}`);
+
+  const teamNew = await Team.create({
+    teamName,
+    description,
+    playersArray,
+  });
+
+  const contractTeamUserNew = await ContractTeamUser.create({
+    teamId: teamNew.id,
+    userId: req.user.id,
+  });
+
+  console.log(`teamNew: ${JSON.stringify(teamNew)}`);
+
+  for (let i = 0; i < playersArray.length; i++) {
+    const player = playersArray[i];
+    const playerNew = await Player.create({
+      teamId: teamNew.id,
+      name: player.name,
+    });
+    await ContractTeamPlayer.create({
+      teamId: teamNew.id,
+      playerId: playerNew.id,
+      shirtNumber: player.shirtNumber,
+      position: player.position,
+    });
+  }
+
+  res.json({ result: true, teamNew });
+});
+
+module.exports = router;

@@ -12,7 +12,14 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
       //   model: PlayerContract,
       model: ContractTeamPlayer,
       where: { teamId: req.params.teamId },
-      attributes: ["id", "teamId", "playerId", "shirtNumber"], // Include PlayerContract fields
+      attributes: [
+        "id",
+        "teamId",
+        "playerId",
+        "shirtNumber",
+        "position",
+        "role",
+      ], // Include PlayerContract fields
     },
   });
   console.log(`req.params.teamId: ${req.params.teamId}`);
@@ -32,6 +39,8 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
         lastName: player.lastName,
         birthDate: player.birthDate,
         shirtNumber: player.ContractTeamPlayers[0].shirtNumber,
+        position: player.ContractTeamPlayers[0].position,
+        role: player.ContractTeamPlayers[0].role,
       };
       playersArray.push(playerArrayObj);
     });

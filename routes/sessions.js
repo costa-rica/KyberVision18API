@@ -3,11 +3,15 @@ var router = express.Router();
 const {
   Action,
   Script,
-  ContractScriptVideo,
+  // ContractScriptVideo,
+  ContractVideoAction,
   Session,
 } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
-const { createEstimatedTimestampStartOfVideo } = require("../modules/scripts");
+// const { createEstimatedTimestampStartOfVideo } = require("../modules/scripts");
+const {
+  createEstimatedTimestampStartOfVideo,
+} = require("../modules/contractVideoAction");
 const {
   createUniquePlayerNamesArray,
   createUniquePlayerObjArray,
@@ -39,95 +43,59 @@ router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
     const scriptIds = scripts.map((script) => script.id);
     // console.log(`scriptIds: ${scriptIds}`);
 
-    // 🔹 Find all Actions linked to these Scripts
-    const actionsArray = await Action.findAll({
-      where: { scriptId: scriptIds },
-      order: [["timestamp", "ASC"]],
-      include: [ContractActionVideo],
-    });
+    let arrayOfScriptActions = [];
 
-    // // Find all contractActionVideo linked to these Actions
-    // const contractActionVideosArray = await ContractActionVideo.findAll({
-    //   where: { actionId: actionsArray.map((action) => action.id) },
-    // });
-
-    // console.log(`contractActionVideosArray: ${JSON.stringify(contractActionVideosArray)}`);
-
-    // // 🔹 Find all ContractScriptVideos associated with these Scripts
-    // const contractScriptVideos = await ContractScriptVideo.findAll({
-    //   where: { scriptId: scriptIds },
-    //   attributes: ["id", "scriptId", "deltaTimeInSeconds"], // Need deltaTimeInSeconds per ContractScriptVideo
-    // });
-
-    // console.log(`contractScriptVideos: ${JSON.stringify(contractScriptVideos)}`);
-
-    // if (contractActionVideosArray.length === 0) {
-    //   return res.status(404).json({
-    //     result: false,
-    //     message: "No ContractActionVideos found for this session.",
-    //   });
-    // }
-
-    // console.log(`✅ Found ${contractScriptVideos.length} ContractScriptVideos`);
-
-    // // Create a mapping of scriptId → deltaTimeInSeconds
-    // const deltaTimeInSecondsMap = {};
-    // contractScriptVideos.forEach((sc) => {
-    //   // deltaTimeInSecondsMap[sc.id] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
-    //   deltaTimeInSecondsMap[sc.scriptId] = sc.deltaTimeInSeconds || 0.0; // Default 0.0 if undefined
-    // });
-
-    // console.log(`📊 deltaTimeInSeconds mapping:`, deltaTimeInSecondsMap);
-
-    // // 🔹 Find all Actions linked to these ContractScriptVideos
-    // const actions = await Action.findAll({
-    //   where: { scriptId: scriptIds },
-    //   order: [["timestamp", "ASC"]],
-    // });
-
-    // console.log(`actions: ${JSON.stringify(actions)}`);
-
-    if (actions.length === 0) {
-      return res.json({ result: true, actions: [] });
+    for (let i = 0; i < scriptIds.length; i++) {
+      const actions = await Action.findAll({
+        where: { scriptId: scriptIds[i] },
+        order: [["timestamp", "ASC"]],
+        include: [ContractVideoAction],
+      });
+      arrayOfScriptActions.push(actions);
     }
 
-    console.log(`✅ Found ${actions.length} actions`);
+    let arrayOfScriptActionsModified = [];
 
-    // Compute estimated start of video timestamp per action’s ContractScriptVideo deltaTimeInSeconds
-    const updatedActions = actionsArray.map((action, index) => {
-      const actionDeltaTimeInSeconds =
-        deltaTimeInSecondsMap[action.scriptId] || 0.0; // Get deltaTimeInSeconds per action’s ContractScriptVideo
-      // const estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(
-      //   actions,
-      //   actiondeltaTimeInSeconds
-      // );
+    for (let i = 0; i < arrayOfScriptActions.length; i++) {
+      // arrayOfScriptActions.forEach((actionsArray, i) => {
+      let estimatedStartOfVideo = null;
+      const updatedActions = arrayOfScriptActions[i].map((action, index) => {
+        if (i === 0) {
+          estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(action);
+          console.log(`estimatedStartOfVideo: ${estimatedStartOfVideo}`);
+        }
+        const { ContractVideoActions, ...actionWithoutContractVideoActions } =
+          action.toJSON();
+        return {
+          // remove ContractVideoAction from action
+          ...actionWithoutContractVideoActions,
+          // ContractVideoActions: undefined,
+          timestampFromStartOfVideo:
+            ContractVideoActions.deltaTimeInSeconds - estimatedStartOfVideo,
+          // timestampFromStartOfVideo:
+          //   (new Date(action.timestamp) - estimatedStartOfVideo) / 1000, // Convert ms to seconds
+          reviewVideoActionsArrayIndex: index + 1, // Start indexing at 1
+        };
+      });
+      arrayOfScriptActionsModified.push(updatedActions);
+    }
 
-      return {
-        ...action.toJSON(),
-        timestampFromStartOfVideo:
-          (new Date(action.timestamp) - estimatedStartOfVideo) / 1000, // Convert ms to seconds
-        reviewVideoActionsArrayIndex: index + 1, // Start indexing at 1
-      };
-    });
+    // console.log(
+    //   `✅ Updated ${updatedActions.length} actions with correct deltaTimeInSecondss`
+    // );
 
-    console.log(
-      `✅ Updated ${updatedActions.length} actions with correct deltaTimeInSecondss`
-    );
-
-    const uniqueListOfPlayerNamesArray = await createUniquePlayerNamesArray(
-      updatedActions
-    );
-    const uniqueListOfPlayerObjArray = await createUniquePlayerObjArray(
-      updatedActions
-    );
-
-    // console.log(`uniqueListOfPlayerNamesArray: ${JSON.stringify(uniqueListOfPlayerNamesArray)}`);
+    // const uniqueListOfPlayerNamesArray = await createUniquePlayerNamesArray(
+    //   updatedActions
+    // );
+    // const uniqueListOfPlayerObjArray = await createUniquePlayerObjArray(
+    //   updatedActions
+    // );
 
     res.json({
       result: true,
-      actionsArray: updatedActions,
-      playerNamesArray: uniqueListOfPlayerNamesArray,
-      playerDbObjectsArray: uniqueListOfPlayerObjArray,
+      actionsArray: arrayOfScriptActionsModified,
+      // playerNamesArray: uniqueListOfPlayerNamesArray,
+      // playerDbObjectsArray: uniqueListOfPlayerObjArray,
     });
   } catch (error) {
     console.error("❌ Error fetching actions for match:", error);

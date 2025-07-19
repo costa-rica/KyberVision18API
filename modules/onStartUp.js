@@ -2,7 +2,7 @@ const { User, Team, Session, League } = require("kybervision17db");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const { createNewTeam } = require("./teams");
-const { addUserToFreeAgentTeam } = require("./users");
+// const { addUserToFreeAgentTeam } = require("./users");
 const { createSessionWithFreeAgentLeague } = require("./sessions");
 
 function verifyCheckDirectoryExists() {
@@ -23,32 +23,39 @@ function verifyCheckDirectoryExists() {
   });
 }
 
-async function onStartUpCreateFreeAgentLeagueAndTeam() {
-  try {
-    const existingFreeAgentTeam = await Team.findOne({
-      where: { teamName: "Free Agent Team" },
-    });
-
-    if (existingFreeAgentTeam) {
-      console.log("ℹ️  Free Agent team already initialized. Skipping setup.");
-      return;
-    }
-
-    await League.create({
-      name: "Free Agent League",
-      category: "Free Agents",
-    });
-
-    await createNewTeam(
-      "Free Agent Team",
-      "Free Agent City",
-      "Free Agent Coach"
-    );
-    console.log("✅ Free Agent league, team created.");
-  } catch (err) {
-    console.error("❌ Error during dummy data setup:", err);
-  }
+async function onStartUpCreateLeague() {
+  await League.create({
+    name: "General League",
+    category: "General",
+  });
 }
+
+// async function onStartUpCreateFreeAgentLeagueAndTeam() {
+//   try {
+//     const existingFreeAgentTeam = await Team.findOne({
+//       where: { teamName: "Free Agent Team" },
+//     });
+
+//     if (existingFreeAgentTeam) {
+//       console.log("ℹ️  Free Agent team already initialized. Skipping setup.");
+//       return;
+//     }
+
+//     await League.create({
+//       name: "Free Agent League",
+//       category: "Free Agents",
+//     });
+
+//     await createNewTeam(
+//       "Free Agent Team",
+//       "Free Agent City",
+//       "Free Agent Coach"
+//     );
+//     console.log("✅ Free Agent league, team created.");
+//   } catch (err) {
+//     console.error("❌ Error during dummy data setup:", err);
+//   }
+// }
 
 async function onStartUpCreateEnvUsers() {
   if (!process.env.ADMIN_EMAIL_KV_MANAGER_WEBSITE) {
@@ -83,7 +90,7 @@ async function onStartUpCreateEnvUsers() {
           isAdminForKvManagerWebsite: true, // Set admin flag
         });
 
-        await addUserToFreeAgentTeam(newUser.id);
+        // await addUserToFreeAgentTeam(newUser.id);
 
         console.log(`✅ Admin user created: ${email}`);
       } else {
@@ -95,59 +102,60 @@ async function onStartUpCreateEnvUsers() {
   }
 }
 
-// async function onStartUpCreatePracticeMatchForEachTeam() {
-async function onStartUpCreatePracticeSessionForEachTeam() {
-  let practiceLeague = await League.findOne({
-    where: { name: "Free Agent League" },
-  });
+// // async function onStartUpCreatePracticeMatchForEachTeam() {
+// async function onStartUpCreatePracticeSessionForEachTeam() {
+//   let practiceLeague = await League.findOne({
+//     where: { name: "Free Agent League" },
+//   });
 
-  if (!practiceLeague) {
-    practiceLeague = await League.create({
-      name: "Free Agent League",
-      category: "Free Agents",
-    });
-  }
+//   if (!practiceLeague) {
+//     practiceLeague = await League.create({
+//       name: "Free Agent League",
+//       category: "Free Agents",
+//     });
+//   }
 
-  let practiceSessionCount = 0;
-  try {
-    const allTeams = await Team.findAll();
+//   let practiceSessionCount = 0;
+//   try {
+//     const allTeams = await Team.findAll();
 
-    for (const currentTeam of allTeams) {
-      const existingPracticeSession = await Session.findOne({
-        where: {
-          teamId: currentTeam.id,
-          city: "Practice",
-        },
-      });
+//     for (const currentTeam of allTeams) {
+//       const existingPracticeSession = await Session.findOne({
+//         where: {
+//           teamId: currentTeam.id,
+//           city: "Practice",
+//         },
+//       });
 
-      if (!existingPracticeSession) {
-        await createSessionWithFreeAgentLeague(currentTeam.id);
-        // await Match.create({
-        //   teamIdAnalyzed: currentTeam.id,
-        //   teamIdOpponent: currentTeam.id,
-        //   matchDate: new Date().toISOString().split("T")[0],
-        //   leagueId: practiceLeague.id,
-        //   teamIdWinner: null,
-        //   competitionContractId: null,
-        //   city: "practice",
-        // });
-        console.log(
-          `✅ Practice session created for team: ${currentTeam.teamName}`
-        );
-        practiceSessionCount++;
-      }
-    }
-    if (practiceSessionCount === 0) {
-      console.log(`ℹ️  All teams have practice sessions.`);
-    }
-  } catch (err) {
-    console.error("❌ Error creating practice sessions:", err);
-  }
-}
+//       if (!existingPracticeSession) {
+//         await createSessionWithFreeAgentLeague(currentTeam.id);
+//         // await Match.create({
+//         //   teamIdAnalyzed: currentTeam.id,
+//         //   teamIdOpponent: currentTeam.id,
+//         //   matchDate: new Date().toISOString().split("T")[0],
+//         //   leagueId: practiceLeague.id,
+//         //   teamIdWinner: null,
+//         //   competitionContractId: null,
+//         //   city: "practice",
+//         // });
+//         console.log(
+//           `✅ Practice session created for team: ${currentTeam.teamName}`
+//         );
+//         practiceSessionCount++;
+//       }
+//     }
+//     if (practiceSessionCount === 0) {
+//       console.log(`ℹ️  All teams have practice sessions.`);
+//     }
+//   } catch (err) {
+//     console.error("❌ Error creating practice sessions:", err);
+//   }
+// }
 
 module.exports = {
   verifyCheckDirectoryExists,
   onStartUpCreateEnvUsers,
-  onStartUpCreateFreeAgentLeagueAndTeam,
-  onStartUpCreatePracticeSessionForEachTeam,
+  onStartUpCreateLeague,
+  // onStartUpCreateFreeAgentLeagueAndTeam,
+  // onStartUpCreatePracticeSessionForEachTeam,
 };

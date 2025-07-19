@@ -50,7 +50,7 @@ router.get("/", authenticateToken, async (req, res) => {
       where: { userId },
       include: {
         model: Team,
-        attributes: ["id", "teamName", "city", "coachName"], // specify fields you want
+        //attributes: ["id", "teamName", "city", "coachName"], // specify fields you want
       },
     });
     // console.log(" --- contractTeamUsers ------");
@@ -62,16 +62,16 @@ router.get("/", authenticateToken, async (req, res) => {
       contractTeamUsers.map(async (ctu) => {
         const team = ctu.Team.toJSON(); // convert to plain object
 
-        // Add a practice Match
-        const practiceMatch = await Session.findOne({
-          where: {
-            teamId: team.id,
-            //   teamIdOpponent: team.id,
-            city: "practice",
-          },
-          order: [["sessionDate", "DESC"]],
-        });
-        team.practiceMatch = practiceMatch;
+        // // Add a practice Match
+        // const practiceMatch = await Session.findOne({
+        //   where: {
+        //     teamId: team.id,
+        //     //   teamIdOpponent: team.id,
+        //     // city: "practice",
+        //   },
+        //   order: [["sessionDate", "DESC"]],
+        // });
+        // team.practiceMatch = practiceMatch;
         return team;
       })
     );

@@ -19,9 +19,8 @@ const {
   ContractTeamPlayer,
   Point,
   Script,
-  // SyncContract,
-  // ContractScriptVideo,
-  ContractActionVideo,
+
+  ContractVideoAction,
   Team,
 } = require("kybervision17db");
 const models = {
@@ -44,7 +43,7 @@ const models = {
   Script,
   // SyncContract,
   // ContractScriptVideo,
-  ContractActionVideo,
+  ContractVideoAction,
   Team,
 };
 
@@ -68,21 +67,28 @@ const upload = multer({
   dest: path.join(process.env.PATH_PROJECT_RESOURCES, "uploads-delete-ok/"),
 }); // Temporary storage for file uploads
 
+// GET /admin-db/table/:tableName
 router.get("/table/:tableName", authenticateToken, async (req, res) => {
   try {
     const { tableName } = req.params;
     console.log(`- in GET /admin-db/table/${tableName}`);
 
-    // Check if the requested table exists in the models
     if (!models[tableName]) {
       return res
         .status(400)
         .json({ result: false, message: `Table '${tableName}' not found.` });
     }
 
-    // Fetch all records from the table
-    const tableData = (await models[tableName].findAll()) || [];
-    // console.log(`Fetched data from ${tableName}:`, tableData);
+    let tableData = await models[tableName].findAll({ raw: true });
+
+    if (tableData.length === 0) {
+      const attributes = Object.keys(models[tableName].rawAttributes);
+      const dummyRow = {};
+      attributes.forEach((attr) => {
+        dummyRow[attr] = null;
+      });
+      tableData = [dummyRow];
+    }
 
     res.json({ result: true, data: tableData });
   } catch (error) {
@@ -94,6 +100,32 @@ router.get("/table/:tableName", authenticateToken, async (req, res) => {
     });
   }
 });
+// router.get("/table/:tableName", authenticateToken, async (req, res) => {
+//   try {
+//     const { tableName } = req.params;
+//     console.log(`- in GET /admin-db/table/${tableName}`);
+
+//     // Check if the requested table exists in the models
+//     if (!models[tableName]) {
+//       return res
+//         .status(400)
+//         .json({ result: false, message: `Table '${tableName}' not found.` });
+//     }
+
+//     // Fetch all records from the table
+//     const tableData = (await models[tableName].findAll()) || [];
+//     // console.log(`Fetched data from ${tableName}:`, tableData);
+
+//     res.json({ result: true, data: tableData });
+//   } catch (error) {
+//     console.error("Error fetching table data:", error);
+//     res.status(500).json({
+//       result: false,
+//       message: "Internal server error",
+//       error: error.message,
+//     });
+//   }
+// });
 
 router.get("/create-database-backup", authenticateToken, async (req, res) => {
   console.log(`- in GET /admin-db/create-database-backup`);
@@ -194,6 +226,7 @@ router.get("/db-row-counts-by-table", authenticateToken, async (req, res) => {
     let arrayRowCountsByTable = [];
 
     for (const tableName in models) {
+      console.log(`Checking table: ${tableName}`);
       if (models.hasOwnProperty(tableName)) {
         // console.log(`Checking table: ${tableName}`);
 

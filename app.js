@@ -16,7 +16,7 @@ var sessionsRouter = require("./routes/sessions");
 var leaguesRouter = require("./routes/leagues");
 var playersRouter = require("./routes/players");
 var scriptsRouter = require("./routes/scripts");
-// var contractScriptVideoRouter = require("./routes/contractScriptVideo");
+var teamsRouter = require("./routes/teams");
 
 var app = express();
 const cors = require("cors");
@@ -43,7 +43,7 @@ app.use("/sessions", sessionsRouter);
 app.use("/leagues", leaguesRouter);
 app.use("/players", playersRouter);
 app.use("/scripts", scriptsRouter);
-// app.use("/contract-script-video", contractScriptVideoRouter);
+app.use("/teams", teamsRouter);
 
 // Increase payload size for large files
 app.use(express.json({ limit: "6gb" }));
@@ -51,8 +51,9 @@ app.use(express.urlencoded({ limit: "6gb", extended: true }));
 
 const {
   onStartUpCreateEnvUsers,
-  onStartUpCreateFreeAgentLeagueAndTeam,
-  onStartUpCreatePracticeSessionForEachTeam,
+  // onStartUpCreateFreeAgentLeagueAndTeam,
+  // onStartUpCreatePracticeSessionForEachTeam,
+  onStartUpCreateLeague,
 } = require("./modules/onStartUp");
 
 // Sync database and then create environment users
@@ -60,9 +61,10 @@ sequelize
   .sync()
   .then(async () => {
     console.log("✅ Database connected & synced");
-    await onStartUpCreateFreeAgentLeagueAndTeam();
+    // await onStartUpCreateFreeAgentLeagueAndTeam();
     await onStartUpCreateEnvUsers(); // <-- Call function here
-    await onStartUpCreatePracticeSessionForEachTeam();
+    // await onStartUpCreatePracticeSessionForEachTeam();
+    await onStartUpCreateLeague();
   })
   .catch((error) => console.error("❌ Error syncing database:", error));
 
