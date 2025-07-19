@@ -1,6 +1,13 @@
 const express = require("express");
 var router = express.Router();
-const { Team, Player, ContractTeamPlayer } = require("kybervision17db");
+const {
+  Team,
+  Player,
+  ContractTeamPlayer,
+  ContractTeamUser,
+  ContractLeagueTeam,
+  League,
+} = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 
 // GET /teams
@@ -16,7 +23,7 @@ router.get("/", authenticateToken, async (req, res) => {
 router.post("/create", authenticateToken, async (req, res) => {
   console.log("- accessed POST /teams/create");
 
-  const { teamName, description, playersArray } = req.body;
+  const { teamName, description, playersArray, leagueName } = req.body;
   console.log(`teamName: ${teamName}`);
 
   const teamNew = await Team.create({
@@ -25,9 +32,24 @@ router.post("/create", authenticateToken, async (req, res) => {
     playersArray,
   });
 
+  let leagueId;
+  if (!leagueName) {
+    leagueId = 1;
+  } else {
+    const league = await League.findOne({ where: { name: leagueName } });
+    leagueId = league.id;
+  }
+
+  const contractLeagueTeamNew = await ContractLeagueTeam.create({
+    leagueId,
+    teamId: teamNew.id,
+  });
+
   const contractTeamUserNew = await ContractTeamUser.create({
     teamId: teamNew.id,
     userId: req.user.id,
+    isSuperUser: true,
+    isAdmin: true,
   });
 
   console.log(`teamNew: ${JSON.stringify(teamNew)}`);
@@ -36,7 +58,9 @@ router.post("/create", authenticateToken, async (req, res) => {
     const player = playersArray[i];
     const playerNew = await Player.create({
       teamId: teamNew.id,
-      name: player.name,
+      firstName: player.firstName,
+      lastName: player.lastName,
+      // birthDate: player.birthDate,
     });
     await ContractTeamPlayer.create({
       teamId: teamNew.id,
