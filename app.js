@@ -17,6 +17,7 @@ var leaguesRouter = require("./routes/leagues");
 var playersRouter = require("./routes/players");
 var scriptsRouter = require("./routes/scripts");
 var teamsRouter = require("./routes/teams");
+var contractVideoActionsRouter = require("./routes/contractVideoActions");
 
 var app = express();
 const cors = require("cors");
@@ -44,6 +45,7 @@ app.use("/leagues", leaguesRouter);
 app.use("/players", playersRouter);
 app.use("/scripts", scriptsRouter);
 app.use("/teams", teamsRouter);
+app.use("/contract-video-actions", contractVideoActionsRouter);
 
 // Increase payload size for large files
 app.use(express.json({ limit: "6gb" }));

@@ -17,6 +17,8 @@ const {
   createUniquePlayerObjArray,
 } = require("../modules/players");
 
+// This was used before to get the Actions for the Review Video Selection Screen and then useed in the Review Video Screen
+// --- > OBE this one and create a new endpoint GET /sessions/review-selection-screen/:sessionId/get-actions-for-videos
 // 🔹 GET /sessions/:sessionId/actions : Get all actions for a session
 // router.get("/:matchId/actions", authenticateToken, async (req, res) => {
 router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
@@ -239,12 +241,64 @@ router.post("/create", authenticateToken, async (req, res) => {
   }
 });
 
-// GET /sessions/:sessionId/script-and-actions-for-syncing
+// This is used for the mobile ScriptingSyncVideo Screen (after the user has selected a video)
+// GET /sessions/scripting-sync-video/:sessionId/actions
 router.get(
-  "/:sessionId/script-and-actions-for-syncing",
+  "/scripting-sync-video/:sessionId/actions",
   authenticateToken,
   async (req, res) => {
-    console.log("in GET script-and-actions-for-syncing");
+    console.log(
+      `- in GET sessions/scripting-sync-video/${req.params.sessionId}/actions`
+    );
+    try {
+      const { sessionId } = req.params;
+      // const sessionId = 2;
+
+      // 🔹 Find all Scripts linked to this sessionId
+      const scriptsArray = await Script.findAll({
+        where: { sessionId },
+        attributes: ["id"], // Only need script IDs
+      });
+
+      const actionsArray = await Action.findAll({
+        where: { scriptId: scriptsArray.map((script) => script.id) },
+        // where: { scriptId: 55 },
+        // attributes: ["id", "timestamp", "actionType", "actionValue"], // Only need action IDs
+      });
+
+      // console.log(`actionsArray: ${JSON.stringify(actionsArray)}`);
+
+      if (actionsArray.length === 0) {
+        return res.status(404).json({
+          result: false,
+          message: "No actions found for this session.",
+        });
+      }
+
+      // console.log(`✅ Found ${actionsArray.length} actions`);
+
+      // console.log(
+      //   `actionsArray: ${JSON.stringify(actionsArray)}`
+      // );
+
+      res.json({ result: true, actionsArray });
+    } catch (error) {
+      console.error("❌ Error fetching actions for session:", error);
+      res.status(500).json({
+        result: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// GET /sessions/scripting-sync-video-screen/get-actions-for-syncing/:sessionId
+router.get(
+  "/scripting-sync-video-screen/get-actions-for-syncing/:sessionId",
+  authenticateToken,
+  async (req, res) => {
+    console.log("in GET get-actions-for-syncing");
     try {
       const { sessionId } = req.params;
       // const sessionId = 2;
