@@ -309,39 +309,51 @@ router.get(
         attributes: ["id"], // Only need script IDs
       });
 
-      const actionsArray = await Action.findAll({
-        where: { scriptId: scriptsArray.map((script) => script.id) },
-        // where: { scriptId: 55 },
-        // attributes: ["id", "timestamp", "actionType", "actionValue"], // Only need action IDs
-      });
+      // const actionsArray = await Action.findAll({
+      //   where: { scriptId: scriptsArray.map((script) => script.id) },
+      //   // where: { scriptId: 55 },
+      //   // attributes: ["id", "timestamp", "actionType", "actionValue"], // Only need action IDs
+      // });
 
-      const contractScriptVideosArray = await ContractScriptVideo.findAll({
-        where: { scriptId: scriptsArray.map((script) => script.id) },
-      });
-      console.log(
-        `contractScriptVideosArray: ${JSON.stringify(
-          contractScriptVideosArray
-        )}`
-      );
+      let actionsArrayByScript = [];
+      for (let i = 0; i < scriptsArray.length; i++) {
+        // let actionsArray = [];
+        const actionsArray = await Action.findAll({
+          where: { scriptId: scriptsArray[i].id },
+          include: [ContractVideoAction],
+        });
 
-      const formattedScriptsArray = scriptsArray.map((script) => {
-        const contractScriptVideoObj = contractScriptVideosArray.find(
-          (contractScriptVideo) => contractScriptVideo.scriptId === script.id
-        );
+        // const actionsArrayWithoutContractVideoActions = actionsArray.map(
 
-        return {
-          scriptId: script.id,
-          deltaTimeInSeconds: contractScriptVideoObj.deltaTimeInSeconds,
-          contractScriptVideoId: contractScriptVideoObj.id,
-          actionsArray: actionsArray.filter(
-            (action) => action.scriptId === script.id
-          ),
-        };
-      });
+        actionsArrayByScript.push(actionsArray);
+      }
 
-      // console.log(`sessionId: ${sessionId}`);
-      // console.log(`scripts: ${JSON.stringify(scriptsArray)}`);
-      res.json({ result: true, sessionId, formattedScriptsArray });
+      // const contractScriptVideosArray = await ContractScriptVideo.findAll({
+      //   where: { scriptId: scriptsArray.map((script) => script.id) },
+      // });
+      // console.log(
+      //   `contractScriptVideosArray: ${JSON.stringify(
+      //     contractScriptVideosArray
+      //   )}`
+      // );
+
+      // const formattedScriptsArray = scriptsArray.map((script) => {
+      //   const contractScriptVideoObj = contractScriptVideosArray.find(
+      //     (contractScriptVideo) => contractScriptVideo.scriptId === script.id
+      //   );
+
+      //   return {
+      //     scriptId: script.id,
+      //     deltaTimeInSeconds: contractScriptVideoObj.deltaTimeInSeconds,
+      //     contractScriptVideoId: contractScriptVideoObj.id,
+      //     actionsArray: actionsArray.filter(
+      //       (action) => action.scriptId === script.id
+      //     ),
+      //   };
+      // });
+
+      // res.json({ result: true, sessionId, formattedScriptsArray });
+      res.json({ result: true, sessionId, actionsArrayByScript });
     } catch (error) {
       console.error("❌ Error fetching actions for session:", error);
       res.status(500).json({

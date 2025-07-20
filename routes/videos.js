@@ -5,7 +5,15 @@ const {
   detokenizeObject,
 } = require("../modules/userAuthentication");
 const router = express.Router();
-const { Video, ContractTeamUser, Session, User } = require("kybervision17db");
+const {
+  Video,
+  ContractTeamUser,
+  Session,
+  User,
+  Action,
+  ContractVideoAction,
+  Script,
+} = require("kybervision17db");
 const { getSessionWithTeams } = require("../modules/sessions");
 const {
   upload,
@@ -196,6 +204,24 @@ router.post(
     // // let syncContractUpdates = await updateSyncContractsWithVideoId(
     // let contractScriptVideoUpdates =
     //   await updateContractScriptVideosWithVideoId(newVideo.id, sessionId);
+
+    // Step 5: Create ContractVideoActions for each action
+    // Get all scripts for session
+    const scriptsArray = await Script.findAll({
+      where: { sessionId },
+    });
+    const actionsArray = await Action.findAll({
+      where: { scriptId: scriptsArray.map((script) => script.id) },
+    });
+
+    // Create ContractVideoActions for each action
+    for (let i = 0; i < actionsArray.length; i++) {
+      const action = actionsArray[i];
+      await ContractVideoAction.create({
+        actionId: action.id,
+        videoId: newVideo.id,
+      });
+    }
 
     const videoId = newVideo.id;
     // Step 6: spawn KyberVision14YouTuber child process
