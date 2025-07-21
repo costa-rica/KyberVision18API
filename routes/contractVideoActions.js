@@ -1,35 +1,44 @@
 const {
   // ContractScriptVideo,
   ContractVideoAction,
+  Action,
 } = require("kybervision17db");
 const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../modules/userAuthentication");
 
-// POST /scripting-sync-video-screen/update-delta-time/:contractVideoActionId
+// POST /contract-video-actions/scripting-sync-video-screen/update-delta-time-all-actions-in-script/:scriptId
 router.post(
-  "/scripting-sync-video-screen/update-delta-time/:contractVideoActionId",
+  "/scripting-sync-video-screen/update-delta-time-all-actions-in-script/:scriptId",
   authenticateToken,
   async (req, res) => {
     console.log(
-      `- in POST /scripting-sync-video-screen/update-delta-time/${req.params.contractVideoActionId}`
+      `- in POST /scripting-sync-video-screen/update-delta-time-all-actions-in-script/${req.params.scriptId}`
     );
 
     const { newDeltaTimeInSeconds } = req.body;
+    console.log(`newDeltaTimeInSeconds: ${newDeltaTimeInSeconds}`);
 
-    const contractVideoAction = await ContractVideoAction.findByPk(
-      req.params.contractVideoActionId
-    );
+    const actionsArray = await Action.findAll({
+      where: { scriptId: req.params.scriptId },
+      order: [["timestamp", "ASC"]],
+      include: [ContractVideoAction],
+    });
 
-    contractVideoAction.deltaTimeInSeconds = newDeltaTimeInSeconds;
-    await contractVideoAction.save();
-
-    if (!contractVideoAction) {
+    if (!actionsArray) {
       return res.status(404).json({
         result: false,
-        message: `ContractVideoAction not found`,
-        contractVideoActionId: req.params.contractVideoActionId,
+        message: `Actions not found`,
+        scriptId: req.params.scriptId,
       });
+    }
+
+    for (let i = 0; i < actionsArray.length; i++) {
+      const contractVideoAction = actionsArray[i].ContractVideoActions[0];
+      if (contractVideoAction) {
+        contractVideoAction.deltaTimeInSeconds = newDeltaTimeInSeconds;
+        await contractVideoAction.save();
+      }
     }
 
     res.json({
@@ -39,39 +48,5 @@ router.post(
     });
   }
 );
-
-// // POST /contract-script-video/modify-delta-time/:contractScriptVideoId
-// router.post(
-//   "/modify-delta-time/:contractScriptVideoId",
-//   authenticateToken,
-//   async (req, res) => {
-//     console.log(
-//       `- in POST /contract-script-video/modify-delta-time/${req.params.contractScriptVideoId}`
-//     );
-
-//     const { newDeltaTimeInSeconds } = req.body;
-
-//     const contractScriptVideo = await ContractScriptVideo.findByPk(
-//       req.params.contractScriptVideoId
-//     );
-
-//     contractScriptVideo.deltaTimeInSeconds = newDeltaTimeInSeconds;
-//     await contractScriptVideo.save();
-
-//     if (!contractScriptVideo) {
-//       return res.status(404).json({
-//         result: false,
-//         message: `ContractScriptVideo not found`,
-//         contractScriptVideoId: req.params.contractScriptVideoId,
-//       });
-//     }
-
-//     res.json({
-//       result: true,
-//       message: `ContractScriptVideo modified with success`,
-//       contractScriptVideoId: req.params.contractScriptVideoId,
-//     });
-//   }
-// );
 
 module.exports = router;

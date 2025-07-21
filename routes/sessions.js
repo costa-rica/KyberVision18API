@@ -294,6 +294,7 @@ router.get(
 );
 
 // GET /sessions/scripting-sync-video-screen/get-actions-for-syncing/:sessionId
+// This is used for the ScriptingSyncVideo Screen
 router.get(
   "/scripting-sync-video-screen/get-actions-for-syncing/:sessionId",
   authenticateToken,
@@ -303,18 +304,15 @@ router.get(
       const { sessionId } = req.params;
       // const sessionId = 2;
 
-      // 🔹 Find all Scripts linked to this sessionId
+      // Step 1: Find all Scripts linked to this sessionId
       const scriptsArray = await Script.findAll({
         where: { sessionId },
-        attributes: ["id"], // Only need script IDs
+        // attributes: [], // Only need script IDs
       });
 
-      // const actionsArray = await Action.findAll({
-      //   where: { scriptId: scriptsArray.map((script) => script.id) },
-      //   // where: { scriptId: 55 },
-      //   // attributes: ["id", "timestamp", "actionType", "actionValue"], // Only need action IDs
-      // });
-
+      // Step 2: Find all Actions linked to this sessionId
+      // -- > this an array of arrays
+      // -- > modify so each action has the scriptFirstActionTimestamp and deltaTimeInSeconds
       let actionsArrayByScript = [];
       for (let i = 0; i < scriptsArray.length; i++) {
         // let actionsArray = [];
@@ -322,35 +320,44 @@ router.get(
           where: { scriptId: scriptsArray[i].id },
           include: [ContractVideoAction],
         });
+        let deltaTimeInSeconds = 0;
+        let deltaTimeInSecondsIsSameForAllActions = true;
 
-        // const actionsArrayWithoutContractVideoActions = actionsArray.map(
+        const actionsArrayModified = actionsArray.map((action, index) => {
+          const { ContractVideoActions, ...actionJSON } = action.toJSON(); // flatten the Sequelize object
 
-        actionsArrayByScript.push(actionsArray);
+          const videoTimestampCalculation =
+            (action.timestamp -
+              scriptsArray[i].timestampReferenceFirstAction +
+              ContractVideoActions[0].deltaTimeInSeconds) /
+            1000;
+
+          if (index === 0) {
+            deltaTimeInSeconds = ContractVideoActions[0].deltaTimeInSeconds;
+          } else {
+            if (
+              ContractVideoActions[0].deltaTimeInSeconds !== deltaTimeInSeconds
+            ) {
+              deltaTimeInSecondsIsSameForAllActions = false;
+            }
+          }
+
+          return {
+            ...actionJSON,
+            scriptFirstActionTimestamp:
+              scriptsArray[i].timestampReferenceFirstAction,
+            deltaTimeInSeconds: ContractVideoActions[0].deltaTimeInSeconds,
+            videoTimestampCalculation,
+          };
+        });
+
+        actionsArrayByScript.push({
+          scriptId: scriptsArray[i].id,
+          actionsArray: actionsArrayModified,
+          deltaTimeInSecondsIsSameForAllActions,
+          deltaTimeInSeconds,
+        });
       }
-
-      // const contractScriptVideosArray = await ContractScriptVideo.findAll({
-      //   where: { scriptId: scriptsArray.map((script) => script.id) },
-      // });
-      // console.log(
-      //   `contractScriptVideosArray: ${JSON.stringify(
-      //     contractScriptVideosArray
-      //   )}`
-      // );
-
-      // const formattedScriptsArray = scriptsArray.map((script) => {
-      //   const contractScriptVideoObj = contractScriptVideosArray.find(
-      //     (contractScriptVideo) => contractScriptVideo.scriptId === script.id
-      //   );
-
-      //   return {
-      //     scriptId: script.id,
-      //     deltaTimeInSeconds: contractScriptVideoObj.deltaTimeInSeconds,
-      //     contractScriptVideoId: contractScriptVideoObj.id,
-      //     actionsArray: actionsArray.filter(
-      //       (action) => action.scriptId === script.id
-      //     ),
-      //   };
-      // });
 
       // res.json({ result: true, sessionId, formattedScriptsArray });
       res.json({ result: true, sessionId, actionsArrayByScript });
