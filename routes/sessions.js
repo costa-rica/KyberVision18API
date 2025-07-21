@@ -17,97 +17,186 @@ const {
   createUniquePlayerObjArray,
 } = require("../modules/players");
 
-// This was used before to get the Actions for the Review Video Selection Screen and then useed in the Review Video Screen
-// --- > OBE this one and create a new endpoint GET /sessions/review-selection-screen/:sessionId/get-actions-for-videos
-// 🔹 GET /sessions/:sessionId/actions : Get all actions for a session
-// router.get("/:matchId/actions", authenticateToken, async (req, res) => {
-router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
-  console.log(`- in GET /sessions/${req.params.sessionId}/actions`);
+// GET /sessions/review-selection-screen/get-actions/:sessionId
+router.get(
+  "/review-selection-screen/get-actions/:sessionId",
+  authenticateToken,
+  async (req, res) => {
+    console.log(
+      `- in GET /sessions/review-selection-screen/get-actions/${req.params.sessionId}`
+    );
 
-  try {
-    const { sessionId } = req.params;
+    try {
+      const { sessionId } = req.params;
 
-    // 🔹 Find all Scripts linked to this sessionId
-    const scripts = await Script.findAll({
-      where: { sessionId },
-      attributes: ["id"], // Only need script IDs
-    });
-
-    console.log(`scripts: ${JSON.stringify(scripts)}`);
-
-    if (scripts.length === 0) {
-      return res
-        .status(404)
-        .json({ result: false, message: "No actions found for this session." });
-    }
-
-    // Extract script IDs
-    const scriptIds = scripts.map((script) => script.id);
-    // console.log(`scriptIds: ${scriptIds}`);
-
-    let arrayOfScriptActions = [];
-
-    for (let i = 0; i < scriptIds.length; i++) {
-      const actions = await Action.findAll({
-        where: { scriptId: scriptIds[i] },
-        order: [["timestamp", "ASC"]],
-        include: [ContractVideoAction],
+      // Step 1: Find all Scripts linked to this sessionId
+      const scriptsArray = await Script.findAll({
+        where: { sessionId },
+        // attributes: ["id"], // Only need script IDs
       });
-      arrayOfScriptActions.push(actions);
-    }
 
-    let arrayOfScriptActionsModified = [];
+      // Step 2: Find all Actions linked to this sessionId
+      // -- > for each script make an array of actinos with the correct timestampFromStartOfVideo
+      let actionsArrayByScript = [];
+      for (let i = 0; i < scriptsArray.length; i++) {
+        const actionsArray = await Action.findAll({
+          where: { scriptId: scriptsArray[i].id },
+          order: [["timestamp", "ASC"]],
+          include: [ContractVideoAction],
+        });
+        const modifiedActionsArray = actionsArray.map((action, index) => {
+          const { ContractVideoActions, ...actionWithoutContractVideoActions } =
+            action.toJSON();
 
-    for (let i = 0; i < arrayOfScriptActions.length; i++) {
-      // arrayOfScriptActions.forEach((actionsArray, i) => {
-      let estimatedStartOfVideo = null;
-      const updatedActions = arrayOfScriptActions[i].map((action, index) => {
-        if (i === 0) {
-          estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(action);
-          console.log(`estimatedStartOfVideo: ${estimatedStartOfVideo}`);
-        }
-        const { ContractVideoActions, ...actionWithoutContractVideoActions } =
-          action.toJSON();
-        return {
-          // remove ContractVideoAction from action
-          ...actionWithoutContractVideoActions,
-          // ContractVideoActions: undefined,
-          timestampFromStartOfVideo:
-            ContractVideoActions.deltaTimeInSeconds - estimatedStartOfVideo,
-          // timestampFromStartOfVideo:
-          //   (new Date(action.timestamp) - estimatedStartOfVideo) / 1000, // Convert ms to seconds
-          reviewVideoActionsArrayIndex: index + 1, // Start indexing at 1
-        };
+          const differenceInTimeActionMinusTimestampReferenceFirstAction =
+            (actionWithoutContractVideoActions.timestamp -
+              scriptsArray[i].timestampReferenceFirstAction) /
+            1000;
+
+          return {
+            // remove ContractVideoAction from action
+            ...actionWithoutContractVideoActions,
+            timestampReferenceFirstAction:
+              scriptsArray[i].timestampReferenceFirstAction,
+            timeDeltaInSeconds: ContractVideoActions[0].deltaTimeInSeconds,
+            timestampFromStartOfVideo:
+              differenceInTimeActionMinusTimestampReferenceFirstAction +
+              ContractVideoActions[0].deltaTimeInSeconds,
+          };
+        });
+        actionsArrayByScript.push({
+          scriptId: scriptsArray[i].id,
+          actionsArray: modifiedActionsArray,
+        });
+      }
+
+      // Step 3: Merge all The actionsArrayByScript into one array
+      const actionsArrayMerged = actionsArrayByScript
+        .map((script) => script.actionsArray)
+        .flat();
+
+      // Step 4: Sort by timestampFromStartOfVideo
+      actionsArrayMerged.sort(
+        (a, b) => a.timestampFromStartOfVideo - b.timestampFromStartOfVideo
+      );
+
+      // Step 5: Add the reviewVideoActionsArrayIndex for each action
+      actionsArrayMerged.forEach((action, index) => {
+        action.reviewVideoActionsArrayIndex = index + 1;
       });
-      arrayOfScriptActionsModified.push(updatedActions);
+
+      // Step 6: Get unique player objects
+      const uniqueListOfPlayerObjArray = await createUniquePlayerObjArray(
+        actionsArrayMerged
+      );
+
+      res.json({
+        result: true,
+        actionsArray: actionsArrayMerged,
+        playerDbObjectsArray: uniqueListOfPlayerObjArray,
+      });
+    } catch (error) {
+      console.error("❌ Error fetching scripts for sessionId:", error);
+      res.status(500).json({
+        result: false,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
-
-    // console.log(
-    //   `✅ Updated ${updatedActions.length} actions with correct deltaTimeInSecondss`
-    // );
-
-    // const uniqueListOfPlayerNamesArray = await createUniquePlayerNamesArray(
-    //   updatedActions
-    // );
-    // const uniqueListOfPlayerObjArray = await createUniquePlayerObjArray(
-    //   updatedActions
-    // );
-
-    res.json({
-      result: true,
-      actionsArray: arrayOfScriptActionsModified,
-      // playerNamesArray: uniqueListOfPlayerNamesArray,
-      // playerDbObjectsArray: uniqueListOfPlayerObjArray,
-    });
-  } catch (error) {
-    console.error("❌ Error fetching actions for match:", error);
-    res.status(500).json({
-      result: false,
-      message: "Internal server error",
-      error: error.message,
-    });
   }
-});
+);
+
+// // This was used before to get the Actions for the Review Video Selection Screen and then useed in the Review Video Screen
+// // --- > OBE this one and create a new endpoint GET /sessions/review-selection-screen/:sessionId/get-actions-for-videos
+// // 🔹 GET /sessions/:sessionId/actions : Get all actions for a session
+// // router.get("/:matchId/actions", authenticateToken, async (req, res) => {
+// router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
+//   console.log(`- in GET /sessions/${req.params.sessionId}/actions`);
+
+//   try {
+//     const { sessionId } = req.params;
+
+//     // 🔹 Find all Scripts linked to this sessionId
+//     const scripts = await Script.findAll({
+//       where: { sessionId },
+//       attributes: ["id"], // Only need script IDs
+//     });
+
+//     console.log(`scripts: ${JSON.stringify(scripts)}`);
+
+//     if (scripts.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ result: false, message: "No actions found for this session." });
+//     }
+
+//     // Extract script IDs
+//     const scriptIds = scripts.map((script) => script.id);
+//     // console.log(`scriptIds: ${scriptIds}`);
+
+//     let arrayOfScriptActions = [];
+
+//     for (let i = 0; i < scriptIds.length; i++) {
+//       const actions = await Action.findAll({
+//         where: { scriptId: scriptIds[i] },
+//         order: [["timestamp", "ASC"]],
+//         include: [ContractVideoAction],
+//       });
+//       arrayOfScriptActions.push(actions);
+//     }
+
+//     let arrayOfScriptActionsModified = [];
+
+//     for (let i = 0; i < arrayOfScriptActions.length; i++) {
+//       // arrayOfScriptActions.forEach((actionsArray, i) => {
+//       let estimatedStartOfVideo = null;
+//       const updatedActions = arrayOfScriptActions[i].map((action, index) => {
+//         if (i === 0) {
+//           estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(action);
+//           console.log(`estimatedStartOfVideo: ${estimatedStartOfVideo}`);
+//         }
+//         const { ContractVideoActions, ...actionWithoutContractVideoActions } =
+//           action.toJSON();
+//         return {
+//           // remove ContractVideoAction from action
+//           ...actionWithoutContractVideoActions,
+//           // ContractVideoActions: undefined,
+//           timestampFromStartOfVideo:
+//             ContractVideoActions.deltaTimeInSeconds - estimatedStartOfVideo,
+//           // timestampFromStartOfVideo:
+//           //   (new Date(action.timestamp) - estimatedStartOfVideo) / 1000, // Convert ms to seconds
+//           reviewVideoActionsArrayIndex: index + 1, // Start indexing at 1
+//         };
+//       });
+//       arrayOfScriptActionsModified.push(updatedActions);
+//     }
+
+//     // console.log(
+//     //   `✅ Updated ${updatedActions.length} actions with correct deltaTimeInSecondss`
+//     // );
+
+//     // const uniqueListOfPlayerNamesArray = await createUniquePlayerNamesArray(
+//     //   updatedActions
+//     // );
+//     // const uniqueListOfPlayerObjArray = await createUniquePlayerObjArray(
+//     //   updatedActions
+//     // );
+
+//     res.json({
+//       result: true,
+//       actionsArray: arrayOfScriptActionsModified,
+//       // playerNamesArray: uniqueListOfPlayerNamesArray,
+//       // playerDbObjectsArray: uniqueListOfPlayerObjArray,
+//     });
+//   } catch (error) {
+//     console.error("❌ Error fetching actions for match:", error);
+//     res.status(500).json({
+//       result: false,
+//       message: "Internal server error",
+//       error: error.message,
+//     });
+//   }
+// });
 
 // GET /sessions/:teamId
 router.get("/:teamId", authenticateToken, async (req, res) => {
