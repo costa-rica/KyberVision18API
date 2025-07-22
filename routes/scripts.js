@@ -25,15 +25,16 @@ router.post(
     // TODO:  add Script.isScriptingLive = true
 
     //   let { actionsArray, matchId, scriptId } = req.body;
-    let { actionsArray, sessionId, scriptId } = req.body;
+    // let { actionsArray, sessionId, scriptId } = req.body;
+    let { actionsArray, sessionId } = req.body;
 
-    console.log(
-      `--------- sessionId: ${sessionId}, scriptId: ${scriptId} ----`
-    );
-    console.log(`actionsArray: ${JSON.stringify(actionsArray)}`);
-    console.log(
-      `--------- END sessionId: ${sessionId}, scriptId: ${scriptId} ----`
-    );
+    // console.log(
+    //   `--------- sessionId: ${sessionId}, scriptId: ${scriptId} ----`
+    // );
+    // console.log(`actionsArray: ${JSON.stringify(actionsArray)}`);
+    // console.log(
+    //   `--------- END sessionId: ${sessionId}, scriptId: ${scriptId} ----`
+    // );
 
     // search actionsArray for earliest timestamp
     const earliestTimestamp = actionsArray.reduce((min, action) => {
@@ -41,15 +42,15 @@ router.post(
     }, actionsArray[0].timestamp);
 
     try {
-      if (!scriptId) {
-        // Create a new script
-        const script = await Script.create({
-          sessionId,
-          timestampReferenceFirstAction: earliestTimestamp,
-          isScriptingLive: true,
-        });
-        scriptId = script.id;
-      }
+      // if (!scriptId) {
+      // Create a new script
+      const script = await Script.create({
+        sessionId,
+        timestampReferenceFirstAction: earliestTimestamp,
+        isScriptingLive: true,
+      });
+      let scriptId = script.id;
+      // }
 
       // Create actions
       await Promise.all(
