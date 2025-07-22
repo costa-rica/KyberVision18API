@@ -44,7 +44,7 @@ router.post(
     res.json({
       result: true,
       message: `ContractVideoAction modified with success`,
-      contractVideoActionId: req.params.contractVideoActionId,
+      scriptId: req.params.scriptId,
     });
   }
 );
