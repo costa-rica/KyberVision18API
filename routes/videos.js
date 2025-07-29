@@ -488,9 +488,11 @@ router.get("/user/", authenticateToken, async (req, res) => {
           model: ContractTeamUser,
           // where: { teamId: parseInt(teamId, 10) },
           where: { userId: user.id },
+          // where: { userId: user.id },
           attributes: ["id", "teamId", "userId"], // optional: include related info
         },
       ],
+      where: { processingCompleted: true },
     });
 
     // Process videos to include match & team details
