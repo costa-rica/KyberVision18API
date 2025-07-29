@@ -83,6 +83,7 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
           attributes: ["id", "teamId", "userId"], // optional: include related info
         },
       ],
+      where: { processingCompleted: true },
     });
     // console.log(videosArray);
 
@@ -477,8 +478,8 @@ router.get(
   }
 );
 
-// GET /videos/user/:userId
-router.get("/user/", authenticateToken, async (req, res) => {
+// GET /videos/user
+router.get("/user", authenticateToken, async (req, res) => {
   try {
     // const { userId } = req.params;
     const user = req.user;
