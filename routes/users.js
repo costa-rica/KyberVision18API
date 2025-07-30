@@ -1,5 +1,5 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 const bcrypt = require("bcrypt");
 const { User, ContractTeamUser } = require("kybervision17db");
 const jwt = require("jsonwebtoken");
@@ -46,13 +46,16 @@ router.post("/register", async (req, res) => {
 
 // POST /users/login
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  var { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: "Email et mot de passe requis." });
   }
 
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({
+    where: { email },
+    include: [ContractTeamUser],
+  });
   if (!user) {
     return res.status(404).json({ error: "Utilisateur non trouvé." });
   }
@@ -70,7 +73,11 @@ router.post("/login", async (req, res) => {
   //   expiresIn: "5h",
   // });
 
-  res.status(200).json({ message: "Connexion réussie.", token, user });
+  var { password, ...userWithoutPassword } = user.toJSON();
+
+  res
+    .status(200)
+    .json({ message: "Connexion réussie.", token, user: userWithoutPassword });
 });
 
 module.exports = router;
