@@ -7,20 +7,20 @@ const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../modules/userAuthentication");
 
-// POST /contract-video-actions/scripting-sync-video-screen/update-delta-time-all-actions-in-script/:scriptId
+// POST /contract-video-actions/scripting-sync-video-screen/update-delta-time-all-actions-in-script
 router.post(
-  "/scripting-sync-video-screen/update-delta-time-all-actions-in-script/:scriptId",
+  "/scripting-sync-video-screen/update-delta-time-all-actions-in-script",
   authenticateToken,
   async (req, res) => {
     console.log(
-      `- in POST /scripting-sync-video-screen/update-delta-time-all-actions-in-script/${req.params.scriptId}`
+      `- in POST /scripting-sync-video-screen/update-delta-time-all-actions-in-script`
     );
 
-    const { newDeltaTimeInSeconds } = req.body;
+    const { newDeltaTimeInSeconds, scriptId, videoId } = req.body;
     console.log(`newDeltaTimeInSeconds: ${newDeltaTimeInSeconds}`);
 
     const actionsArray = await Action.findAll({
-      where: { scriptId: req.params.scriptId },
+      where: { scriptId: scriptId },
       order: [["timestamp", "ASC"]],
       include: [ContractVideoAction],
     });
@@ -29,22 +29,28 @@ router.post(
       return res.status(404).json({
         result: false,
         message: `Actions not found`,
-        scriptId: req.params.scriptId,
+        // scriptId: scriptId,
       });
     }
 
-    for (let i = 0; i < actionsArray.length; i++) {
-      const contractVideoAction = actionsArray[i].ContractVideoActions[0];
-      if (contractVideoAction) {
-        contractVideoAction.deltaTimeInSeconds = newDeltaTimeInSeconds;
-        await contractVideoAction.save();
-      }
+    // get array of ContractVideoActions where actionId is in actionsArray
+    const contractVideoActionsArray = await ContractVideoAction.findAll({
+      where: {
+        actionId: actionsArray.map((action) => action.id),
+        videoId: videoId,
+      },
+    });
+
+    // modify contractVideoActionsArray.deltaTimeInSeconds
+    for (let i = 0; i < contractVideoActionsArray.length; i++) {
+      contractVideoActionsArray[i].deltaTimeInSeconds = newDeltaTimeInSeconds;
+      await contractVideoActionsArray[i].save();
     }
 
     res.json({
       result: true,
       message: `ContractVideoAction modified with success`,
-      scriptId: req.params.scriptId,
+      scriptId: scriptId,
     });
   }
 );
