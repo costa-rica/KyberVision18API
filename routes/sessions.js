@@ -17,26 +17,23 @@ const {
   createUniquePlayerObjArray,
 } = require("../modules/players");
 
-// GET /sessions/review-selection-screen/get-actions/:sessionId
-router.get(
-  "/review-selection-screen/get-actions/:sessionId",
+// POST /sessions/review-selection-screen/get-actions
+router.post(
+  "/review-selection-screen/get-actions",
   authenticateToken,
   async (req, res) => {
-    console.log(
-      `- in GET /sessions/review-selection-screen/get-actions/${req.params.sessionId}`
-    );
+    console.log(`- in POST /sessions/review-selection-screen/get-actions`);
 
     try {
-      const { sessionId } = req.params;
+      const { sessionId, videoId } = req.body;
 
       // Step 1: Find all Scripts linked to this sessionId
       const scriptsArray = await Script.findAll({
         where: { sessionId },
-        // attributes: ["id"], // Only need script IDs
       });
 
-      // Step 2: Find all Actions linked to this sessionId
-      // -- > for each script make an array of actinos with the correct timestampFromStartOfVideo
+      // Step 2: Find all Actions linked to this sessionId and this videoId
+      // -- > for each script make an array of actions with the correct timestampFromStartOfVideo
       let actionsArrayByScript = [];
       for (let i = 0; i < scriptsArray.length; i++) {
         const actionsArray = await Action.findAll({
@@ -48,6 +45,11 @@ router.get(
           const { ContractVideoActions, ...actionWithoutContractVideoActions } =
             action.toJSON();
 
+          const contractVideoActionOfThisVideo = ContractVideoActions.find(
+            (contractVideoAction) =>
+              contractVideoAction.videoId === Number(videoId)
+          );
+
           const differenceInTimeActionMinusTimestampReferenceFirstAction =
             (actionWithoutContractVideoActions.timestamp -
               scriptsArray[i].timestampReferenceFirstAction) /
@@ -58,10 +60,11 @@ router.get(
             ...actionWithoutContractVideoActions,
             timestampReferenceFirstAction:
               scriptsArray[i].timestampReferenceFirstAction,
-            timeDeltaInSeconds: ContractVideoActions[0].deltaTimeInSeconds,
+            timeDeltaInSeconds:
+              contractVideoActionOfThisVideo.deltaTimeInSeconds,
             timestampFromStartOfVideo:
               differenceInTimeActionMinusTimestampReferenceFirstAction +
-              ContractVideoActions[0].deltaTimeInSeconds,
+              contractVideoActionOfThisVideo.deltaTimeInSeconds,
           };
         });
         actionsArrayByScript.push({
@@ -92,7 +95,10 @@ router.get(
 
       res.json({
         result: true,
+        sessionId,
+        videoId,
         actionsArray: actionsArrayMerged,
+        // actionsArray: actionsArrayByScript,
         playerDbObjectsArray: uniqueListOfPlayerObjArray,
       });
     } catch (error) {
