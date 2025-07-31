@@ -27,6 +27,15 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
   console.log(team.teamName);
   // console.log(team);
 
+  const positionToAbb = {
+    "Outside hitter": "OH",
+    "Middle blocker": "MB",
+    Setter: "SET",
+    Opposite: "OPP",
+    Libero: "L",
+    Flex: "Flex",
+  };
+
   let playersArray = [];
   if (players) {
     let playerArrayObj = {};
@@ -40,6 +49,8 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
         birthDate: player.birthDate,
         shirtNumber: player.ContractTeamPlayers[0].shirtNumber,
         position: player.ContractTeamPlayers[0].position,
+        positionAbbreviation:
+          positionToAbb[player.ContractTeamPlayers[0].position],
         role: player.ContractTeamPlayers[0].role,
       };
       playersArray.push(playerArrayObj);
