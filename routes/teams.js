@@ -73,4 +73,19 @@ router.post("/create", authenticateToken, async (req, res) => {
   res.json({ result: true, teamNew });
 });
 
+// POST /teams/update-visibility
+router.post("/update-visibility", authenticateToken, async (req, res) => {
+  console.log("- accessed POST /teams/update-visibility");
+
+  const { teamId, visibility } = req.body;
+  console.log(`teamId: ${teamId}`);
+
+  const team = await Team.findOne({ where: { id: teamId } });
+  // console.log(`team: ${JSON.stringify(team)}`);
+
+  await team.update({ visibility });
+
+  res.json({ result: true, team });
+});
+
 module.exports = router;
