@@ -1,11 +1,9 @@
 const {
-  // GroupContract,
+  User,
   ContractTeamUser,
-  League,
-  // Match,
-  Session,
-
   Team,
+  ContractTeamPlayer,
+  ContractPlayerUser,
 } = require("kybervision17db");
 const express = require("express");
 const router = express.Router();
@@ -82,6 +80,59 @@ router.get("/", authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       error: "Error retrieving contractTeamUsers",
+      details: error.message,
+    });
+  }
+});
+
+// GET /contract-team-user/:teamId
+router.get("/:teamId", authenticateToken, async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    console.log(`teamId: ${teamId}`);
+    const contractTeamUser = await ContractTeamUser.findAll({
+      where: { teamId },
+      include: {
+        model: User,
+        attributes: ["id", "username", "email"], // specify fields you want
+      },
+    });
+
+    const squadArray = contractTeamUser.map((ctu) => {
+      const { User, ...ctuData } = ctu.get();
+
+      return {
+        ...ctuData, // Extract raw contractTeamUser data
+        userId: User.id,
+        username: User.username,
+        email: User.email,
+      };
+    });
+
+    const contractTeamPlayerArray = await ContractTeamPlayer.findAll({
+      where: { teamId },
+    });
+    const contractTeamPlayerIds = contractTeamPlayerArray.map(
+      (ctp) => ctp.playerId
+    );
+    const contractPlayerUserArray = await ContractPlayerUser.findAll({
+      where: { playerId: contractTeamPlayerIds },
+    });
+
+    const squadArrayWithPlayerFlag = squadArray.map((squadMember) => {
+      // const { User, ...ctuData } = ctu.get();
+      return {
+        ...squadMember, // Extract raw contractTeamUser data
+        isPlayer: contractPlayerUserArray.some(
+          (cpu) => cpu.userId === squadMember.userId
+        ),
+      };
+    });
+
+    res.status(200).json({ squadArray: squadArrayWithPlayerFlag });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error retrieving contractTeamUser",
       details: error.message,
     });
   }
