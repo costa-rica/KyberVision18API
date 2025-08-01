@@ -139,4 +139,28 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
   }
 });
 
+// POST /contract-team-user/add-squad-member
+router.post("/add-squad-member", authenticateToken, async (req, res) => {
+  console.log("------- > accessed POST /contract-team-user/add-squad-member");
+  try {
+    const { teamId, email } = req.body;
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found. Please have this email register first.",
+      });
+    }
+    const contractTeamUser = await ContractTeamUser.create({
+      teamId,
+      userId: user.id,
+    });
+    res.status(201).json(contractTeamUser);
+  } catch (error) {
+    res.status(500).json({
+      error: "Error adding squad member",
+      details: error.message,
+    });
+  }
+});
+
 module.exports = router;
