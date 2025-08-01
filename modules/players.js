@@ -1,4 +1,4 @@
-const { Player } = require("kybervision17db");
+const { Player, ContractTeamPlayer } = require("kybervision17db");
 async function createUniquePlayerObjArray(actions) {
   try {
     // 🔹 Extract unique player IDs
@@ -52,7 +52,42 @@ async function createUniquePlayerNamesArray(actions) {
   }
 }
 
+async function addNewPlayerToTeam(
+  teamId,
+  firstName,
+  lastName = null,
+  shirtNumber = null,
+  position = null,
+  positionAbbreviation = null
+) {
+  try {
+    // const player = await Player.create({
+    //   teamId,
+    //   playerId,
+    // });
+
+    const playerNew = await Player.create({
+      teamId,
+      firstName,
+      lastName,
+      // birthDate: player.birthDate,
+    });
+    await ContractTeamPlayer.create({
+      teamId,
+      playerId: playerNew.id,
+      shirtNumber,
+      position,
+      positionAbbreviation,
+    });
+    return playerNew;
+  } catch (error) {
+    console.error("Error adding player to team:", error);
+    throw new Error("Failed to add player to team.");
+  }
+}
+
 module.exports = {
   createUniquePlayerNamesArray,
   createUniquePlayerObjArray,
+  addNewPlayerToTeam,
 };

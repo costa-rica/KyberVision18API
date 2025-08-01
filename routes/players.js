@@ -12,14 +12,15 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
       //   model: PlayerContract,
       model: ContractTeamPlayer,
       where: { teamId: req.params.teamId },
-      attributes: [
-        "id",
-        "teamId",
-        "playerId",
-        "shirtNumber",
-        "position",
-        "role",
-      ], // Include PlayerContract fields
+      // attributes: [
+      //   "id",
+      //   "teamId",
+      //   "playerId",
+      //   "shirtNumber",
+      //   "position",
+      //   "positionAbbreviation",
+      //   "role",
+      // ], // Include PlayerContract fields
     },
   });
   console.log(`req.params.teamId: ${req.params.teamId}`);
@@ -27,14 +28,14 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
   console.log(team.teamName);
   // console.log(team);
 
-  const positionToAbb = {
-    "Outside hitter": "OH",
-    "Middle blocker": "MB",
-    Setter: "SET",
-    Opposite: "OPP",
-    Libero: "L",
-    Flex: "Flex",
-  };
+  // const positionToAbb = {
+  //   "Outside hitter": "OH",
+  //   "Middle blocker": "MB",
+  //   Setter: "SET",
+  //   Opposite: "OPP",
+  //   Libero: "L",
+  //   Flex: "Flex",
+  // };
 
   let playersArray = [];
   if (players) {
@@ -50,7 +51,7 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
         shirtNumber: player.ContractTeamPlayers[0].shirtNumber,
         position: player.ContractTeamPlayers[0].position,
         positionAbbreviation:
-          positionToAbb[player.ContractTeamPlayers[0].position],
+          player.ContractTeamPlayers[0].positionAbbreviation,
         role: player.ContractTeamPlayers[0].role,
       };
       playersArray.push(playerArrayObj);

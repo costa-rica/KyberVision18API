@@ -87,6 +87,7 @@ router.get("/", authenticateToken, async (req, res) => {
 
 // GET /contract-team-user/:teamId
 router.get("/:teamId", authenticateToken, async (req, res) => {
+  console.log("------- > accessed GET /contract-team-user/:teamId");
   try {
     const teamId = req.params.teamId;
     console.log(`teamId: ${teamId}`);
