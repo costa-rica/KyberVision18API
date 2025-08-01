@@ -13,6 +13,7 @@ function verifyCheckDirectoryExists() {
     process.env.PATH_VIDEOS,
     process.env.PATH_VIDEOS_UPLOADED,
     process.env.PATH_DB_BACKUPS,
+    process.env.PATH_PROFILE_PICTURES_PLAYER_DIR,
   ];
 
   pathsToCheck.forEach((dirPath) => {

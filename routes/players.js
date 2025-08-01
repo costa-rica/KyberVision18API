@@ -2,6 +2,7 @@ const express = require("express");
 const { Player, ContractTeamPlayer, Team } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 const router = express.Router();
+const fs = require("fs");
 
 // GET /players/team/:teamId
 router.get("/team/:teamId", authenticateToken, async (req, res) => {
@@ -63,5 +64,32 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
   // console.log(playersArray);
   res.json({ result: true, team, players: playersArray });
 });
+
+// GET /players/profile-picture/:playerId
+router.get(
+  "/profile-picture/:playerId",
+  authenticateToken,
+  async (req, res) => {
+    const playerId = req.params.playerId;
+    const player = await Player.findByPk(playerId);
+    console.log(
+      `get file from: ${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/${player.image} or use _playerDefaultRedditAlien.png as default`
+    );
+    if (!player) {
+      return res.status(404).json({ error: "Player not found" });
+    }
+    const profilePicture = player.image;
+    let profilePicturePath;
+    if (!profilePicture) {
+      profilePicturePath = `${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/_playerDefaultRedditAlien.png`;
+    } else {
+      profilePicturePath = `${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/${player.image}`;
+    }
+    if (!fs.existsSync(profilePicturePath)) {
+      return res.status(404).json({ error: "Profile picture not found" });
+    }
+    res.status(200).json({ profilePicturePath });
+  }
+);
 
 module.exports = router;
