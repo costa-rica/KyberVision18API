@@ -73,10 +73,19 @@ router.get("/", authenticateToken, async (req, res) => {
         return team;
       })
     );
+    const contractTeamUserArrayModified = await Promise.all(
+      contractTeamUsers.map(async (ctu) => {
+        const { Team, ...ctuData } = ctu.get();
+        return ctuData;
+      })
+    );
 
     // console.log(teamsArray);
 
-    res.status(200).json({ teamsArray });
+    res.status(200).json({
+      teamsArray,
+      contractTeamUserArray: contractTeamUserArrayModified,
+    });
   } catch (error) {
     res.status(500).json({
       error: "Error retrieving contractTeamUsers",

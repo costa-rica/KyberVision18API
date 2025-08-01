@@ -4,16 +4,17 @@ const bcrypt = require("bcrypt");
 const { User, ContractTeamUser } = require("kybervision17db");
 const jwt = require("jsonwebtoken");
 const { sendRegistrationEmail } = require("../modules/mailer");
+const os = require("os");
 
 // POST /users/register
 router.post("/register", async (req, res) => {
-  const { username, password, email } = req.body;
+  const { firstName, lastName, password, email } = req.body;
 
-  if (!username || !password || !email) {
+  if (!firstName || !lastName || !password || !email) {
     return res.status(400).json({ error: "Tous les champs sont requis." });
   }
 
-  console.log(`Creating user: ${username}, ${password}, ${email}`);
+  const username = email.split("@")[0];
 
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
@@ -23,23 +24,31 @@ router.post("/register", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await User.create({
-    username,
+    firstName,
+    lastName,
     password: hashedPassword,
     email,
+    username,
     created: new Date(),
   });
-  //TODO: Create ContractTeamUser with PAVVB
-  await ContractTeamUser.create({
-    userId: user.id,
-    teamId: 1,
-    // rightsFlags: 7,
-  });
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-  // const token = jwt.sign({ user }, process.env.JWT_SECRET);
 
-  await sendRegistrationEmail(email, username)
-    .then(() => console.log("Email sent successfully"))
-    .catch((error) => console.error("Email failed:", error));
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+  // const token = jwt.sign({ user }, process.env.JWT_SECRET, {
+  //   expiresIn: "5h",
+  // });
+
+  const areWeOnMacMiniWorkstation = os.hostname();
+  console.log(`areWeOnMacMiniWorkstation: ${areWeOnMacMiniWorkstation}`);
+  if (
+    areWeOnMacMiniWorkstation !== "Nicks-Mac-mini.local" &&
+    areWeOnMacMiniWorkstation !== "Nicks-MacBook-Air.local"
+  ) {
+    await sendRegistrationEmail(email, username)
+      .then(() => console.log("Email sent successfully"))
+      .catch((error) => console.error("Email failed:", error));
+  } else {
+    console.log("Email not sent");
+  }
 
   res.status(201).json({ message: "Successfully created user", user, token });
 });
@@ -67,7 +76,6 @@ router.post("/login", async (req, res) => {
 
   await user.update({ updatedAt: new Date() });
 
-  // const token = jwt.sign({ user }, process.env.JWT_SECRET);
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
   // const token = jwt.sign({ user }, process.env.JWT_SECRET, {
   //   expiresIn: "5h",
