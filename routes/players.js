@@ -4,6 +4,7 @@ const {
   ContractTeamPlayer,
   Team,
   ContractPlayerUser,
+  User,
 } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 const router = express.Router();
@@ -22,10 +23,14 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
       },
       {
         model: ContractPlayerUser,
+        include: {
+          model: User,
+          attributes: ["id", "username", "email"], // specify fields you want
+        },
       },
     ],
   });
-  console.log(JSON.stringify(playersArray, null, 2));
+  // console.log(JSON.stringify(playersArray, null, 2));
   // console.log(`req.params.teamId: ${req.params.teamId}`);
   const team = await Team.findByPk(req.params.teamId);
   // console.log(team.teamName);
@@ -49,6 +54,8 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
         image: player.image,
         isUser: player.ContractPlayerUser ? true : false,
         userId: player.ContractPlayerUser?.userId,
+        username: player.ContractPlayerUser?.User.username,
+        email: player.ContractPlayerUser?.User.email,
       };
       playersArrayResponse.push(playerArrayObj);
     });

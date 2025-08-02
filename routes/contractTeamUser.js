@@ -105,8 +105,13 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
       include: {
         model: User,
         attributes: ["id", "username", "email"], // specify fields you want
+        include: {
+          model: ContractPlayerUser,
+        },
       },
     });
+
+    // console.log(JSON.stringify(contractTeamUser, null, 2));
 
     const squadArray = contractTeamUser.map((ctu) => {
       const { User, ...ctuData } = ctu.get();
@@ -116,6 +121,8 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
         userId: User.id,
         username: User.username,
         email: User.email,
+        isPlayer: User.ContractPlayerUser ? true : false,
+        playerId: User.ContractPlayerUser?.playerId,
       };
     });
 

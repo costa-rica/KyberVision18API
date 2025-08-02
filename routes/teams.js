@@ -149,12 +149,29 @@ router.post(
     const { playerId, userId } = req.body;
     // console.log(`playerId: ${playerId}`);
 
-    const contractPlayerUserNew = await ContractPlayerUser.create({
-      playerId,
-      userId,
+    let contractPlayerUserObject = await ContractPlayerUser.findOne({
+      where: { playerId },
     });
 
-    res.json({ result: true, contractPlayerUserNew });
+    let contractPlayerUserObjectUserAlreadyLinked =
+      await ContractPlayerUser.findOne({
+        where: { userId },
+      });
+
+    if (contractPlayerUserObject) {
+      contractPlayerUserObject.userId = userId;
+      await contractPlayerUserObject.save();
+    } else if (contractPlayerUserObjectUserAlreadyLinked) {
+      contractPlayerUserObjectUserAlreadyLinked.playerId = playerId;
+      await contractPlayerUserObjectUserAlreadyLinked.save();
+    } else {
+      contractPlayerUserObject = await ContractPlayerUser.create({
+        playerId,
+        userId,
+      });
+    }
+
+    res.json({ result: true, contractPlayerUserObject });
   }
 );
 
