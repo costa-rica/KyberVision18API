@@ -13,30 +13,11 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
       //   model: PlayerContract,
       model: ContractTeamPlayer,
       where: { teamId: req.params.teamId },
-      // attributes: [
-      //   "id",
-      //   "teamId",
-      //   "playerId",
-      //   "shirtNumber",
-      //   "position",
-      //   "positionAbbreviation",
-      //   "role",
-      // ], // Include PlayerContract fields
     },
   });
   console.log(`req.params.teamId: ${req.params.teamId}`);
   const team = await Team.findByPk(req.params.teamId);
   console.log(team.teamName);
-  // console.log(team);
-
-  // const positionToAbb = {
-  //   "Outside hitter": "OH",
-  //   "Middle blocker": "MB",
-  //   Setter: "SET",
-  //   Opposite: "OPP",
-  //   Libero: "L",
-  //   Flex: "Flex",
-  // };
 
   let playersArray = [];
   if (players) {
