@@ -25,7 +25,7 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
       },
     ],
   });
-  // console.log(JSON.stringify(playersArray, null, 2));
+  console.log(JSON.stringify(playersArray, null, 2));
   // console.log(`req.params.teamId: ${req.params.teamId}`);
   const team = await Team.findByPk(req.params.teamId);
   // console.log(team.teamName);
@@ -47,11 +47,8 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
           player.ContractTeamPlayers[0].positionAbbreviation,
         role: player.ContractTeamPlayers[0].role,
         image: player.image,
-        isUser: player.ContractPlayerUsers.length > 0,
-        userId:
-          player.ContractPlayerUsers.length > 0
-            ? player.ContractPlayerUsers[0].userId
-            : null,
+        isUser: player.ContractPlayerUser ? true : false,
+        userId: player.ContractPlayerUser?.userId,
       };
       playersArrayResponse.push(playerArrayObj);
     });

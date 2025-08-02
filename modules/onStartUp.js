@@ -25,6 +25,13 @@ function verifyCheckDirectoryExists() {
 }
 
 async function onStartUpCreateLeague() {
+  const existingLeague = await League.findOne({
+    where: { name: "General League" },
+  });
+  if (existingLeague) {
+    console.log("ℹ️  General league already initialized. Skipping setup.");
+    return;
+  }
   await League.create({
     name: "General League",
     category: "General",
