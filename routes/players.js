@@ -54,6 +54,7 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
         positionAbbreviation:
           player.ContractTeamPlayers[0].positionAbbreviation,
         role: player.ContractTeamPlayers[0].role,
+        image: player.image,
       };
       playersArray.push(playerArrayObj);
     });
@@ -65,30 +66,20 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
   res.json({ result: true, team, players: playersArray });
 });
 
-// GET /players/profile-picture/:playerId
+// GET /players/profile-picture/:filename
 router.get(
-  "/profile-picture/:playerId",
+  "/profile-picture/:filename",
   authenticateToken,
   async (req, res) => {
-    const playerId = req.params.playerId;
-    const player = await Player.findByPk(playerId);
+    const filename = req.params.filename;
     console.log(
-      `get file from: ${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/${player.image} or use _playerDefaultRedditAlien.png as default`
+      `get file from: ${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/${filename}`
     );
-    if (!player) {
-      return res.status(404).json({ error: "Player not found" });
-    }
-    const profilePicture = player.image;
-    let profilePicturePath;
-    if (!profilePicture) {
-      profilePicturePath = `${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/_playerDefaultRedditAlien.png`;
-    } else {
-      profilePicturePath = `${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/${player.image}`;
-    }
+    const profilePicturePath = `${process.env.PATH_PROFILE_PICTURES_PLAYER_DIR}/${filename}`;
     if (!fs.existsSync(profilePicturePath)) {
       return res.status(404).json({ error: "Profile picture not found" });
     }
-    res.status(200).json({ profilePicturePath });
+    return res.sendFile(profilePicturePath);
   }
 );
 
