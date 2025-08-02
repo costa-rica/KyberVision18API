@@ -2,11 +2,11 @@ const express = require("express");
 var router = express.Router();
 const {
   Team,
-  Player,
   ContractTeamUser,
   ContractLeagueTeam,
   League,
   ContractTeamPlayer,
+  ContractPlayerUser,
 } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 const { addNewPlayerToTeam } = require("../modules/players");
@@ -137,5 +137,25 @@ router.delete("/player", authenticateToken, async (req, res) => {
 
   res.json({ result: true });
 });
+
+// !! This could probably go on its own route contractPlayerUser.js
+// POST /teams/link-user-to-team-as-player
+router.post(
+  "/link-user-to-team-as-player",
+  authenticateToken,
+  async (req, res) => {
+    console.log("- accessed POST /teams/link-user-to-team-as-player");
+
+    const { playerId, userId } = req.body;
+    // console.log(`playerId: ${playerId}`);
+
+    const contractPlayerUserNew = await ContractPlayerUser.create({
+      playerId,
+      userId,
+    });
+
+    res.json({ result: true, contractPlayerUserNew });
+  }
+);
 
 module.exports = router;
