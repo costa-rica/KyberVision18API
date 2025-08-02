@@ -1,5 +1,10 @@
 const express = require("express");
-const { Player, ContractTeamPlayer, Team } = require("kybervision17db");
+const {
+  Player,
+  ContractTeamPlayer,
+  Team,
+  ContractPlayerUser,
+} = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 const router = express.Router();
 const fs = require("fs");
@@ -8,22 +13,28 @@ const fs = require("fs");
 router.get("/team/:teamId", authenticateToken, async (req, res) => {
   console.log("- accessed GET /players/team/:teamId");
 
-  const players = await Player.findAll({
-    include: {
-      //   model: PlayerContract,
-      model: ContractTeamPlayer,
-      where: { teamId: req.params.teamId },
-    },
+  const playersArray = await Player.findAll({
+    include: [
+      {
+        //   model: PlayerContract,
+        model: ContractTeamPlayer,
+        where: { teamId: req.params.teamId },
+      },
+      {
+        model: ContractPlayerUser,
+      },
+    ],
   });
-  console.log(`req.params.teamId: ${req.params.teamId}`);
+  // console.log(JSON.stringify(playersArray, null, 2));
+  // console.log(`req.params.teamId: ${req.params.teamId}`);
   const team = await Team.findByPk(req.params.teamId);
-  console.log(team.teamName);
+  // console.log(team.teamName);
 
-  let playersArray = [];
-  if (players) {
+  let playersArrayResponse = [];
+  if (playersArray) {
     let playerArrayObj = {};
-    console.log(`- we have players`);
-    players.map((player) => {
+    // console.log(`- we have players`);
+    playersArray.map((player) => {
       // console.log(player.get({ plain: true }));
       playerArrayObj = {
         id: player.id,
@@ -36,15 +47,20 @@ router.get("/team/:teamId", authenticateToken, async (req, res) => {
           player.ContractTeamPlayers[0].positionAbbreviation,
         role: player.ContractTeamPlayers[0].role,
         image: player.image,
+        isUser: player.ContractPlayerUsers.length > 0,
+        userId:
+          player.ContractPlayerUsers.length > 0
+            ? player.ContractPlayerUsers[0].userId
+            : null,
       };
-      playersArray.push(playerArrayObj);
+      playersArrayResponse.push(playerArrayObj);
     });
   } else {
     console.log(`- no players found`);
   }
 
   // console.log(playersArray);
-  res.json({ result: true, team, players: playersArray });
+  res.json({ result: true, team, playersArray: playersArrayResponse });
 });
 
 // GET /players/profile-picture/:filename
