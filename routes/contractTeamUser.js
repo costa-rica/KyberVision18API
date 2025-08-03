@@ -8,35 +8,10 @@ const {
 const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../modules/userAuthentication");
+const jwt = require("jsonwebtoken");
 
 // NOTE: This it the "Tribe" router. Formerly GroupContract
 /// --> would be the groups.js file in KV15API
-
-// POST contract-team-user/create/:teamId
-router.post("/create/:teamId", authenticateToken, async (req, res) => {
-  try {
-    const teamId = req.params.teamId;
-    const userId = req.user.id;
-    const { isSuperUser, isAdmin, isCoach } = req.body;
-    // create or modify contract team user
-    const [contractTeamUser, created] = await ContractTeamUser.upsert(
-      { userId, teamId, isSuperUser, isAdmin, isCoach },
-      { returning: true }
-    );
-    // res.status(201).json(group);
-    res.status(created ? 201 : 200).json({
-      message: created
-        ? "ContractTeamUser created with success"
-        : "ContractTeamUser updated with success",
-      contractTeamUser,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: "Error creating or updating contractTeamUser",
-      details: error.message,
-    });
-  }
-});
 
 // GET /contract-team-user
 router.get("/", authenticateToken, async (req, res) => {
@@ -59,7 +34,15 @@ router.get("/", authenticateToken, async (req, res) => {
     const teamsArray = await Promise.all(
       contractTeamUsers.map(async (ctu) => {
         const team = ctu.Team.toJSON(); // convert to plain object
-
+        const joinToken = jwt.sign(
+          { teamId: team.id },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "2d",
+          }
+        );
+        // team.joinUrlGeneric = `${process.env.URL_BASE_KV_API}/contract-team-user/join/${joinToken}`;
+        team.genericJoinToken = joinToken;
         // // Add a practice Match
         // const practiceMatch = await Session.findOne({
         //   where: {
@@ -89,6 +72,32 @@ router.get("/", authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       error: "Error retrieving contractTeamUsers",
+      details: error.message,
+    });
+  }
+});
+
+// POST contract-team-user/create/:teamId
+router.post("/create/:teamId", authenticateToken, async (req, res) => {
+  try {
+    const teamId = req.params.teamId;
+    const userId = req.user.id;
+    const { isSuperUser, isAdmin, isCoach } = req.body;
+    // create or modify contract team user
+    const [contractTeamUser, created] = await ContractTeamUser.upsert(
+      { userId, teamId, isSuperUser, isAdmin, isCoach },
+      { returning: true }
+    );
+    // res.status(201).json(group);
+    res.status(created ? 201 : 200).json({
+      message: created
+        ? "ContractTeamUser created with success"
+        : "ContractTeamUser updated with success",
+      contractTeamUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error creating or updating contractTeamUser",
       details: error.message,
     });
   }
@@ -177,6 +186,46 @@ router.post("/add-squad-member", authenticateToken, async (req, res) => {
       details: error.message,
     });
   }
+});
+
+// NOT currently being used
+// GET /contract-team-user/create-join-token/:teamId
+router.get(
+  "/create-join-token/:teamId",
+  authenticateToken,
+  async (req, res) => {
+    console.log("- accessed GET /contract-team-user/create-join-token/:teamId");
+    const teamId = req.params.teamId;
+    // const joinToken = tokenizeObject({ teamId });
+    const joinToken = jwt.sign({ teamId }, process.env.JWT_SECRET, {
+      expiresIn: "2m",
+    });
+    const shareUrl = `${process.env.URL_BASE_KV_API}/contract-team-user/join/${joinToken}`;
+    res.status(200).json({ shareUrl });
+  }
+);
+
+// GET /contract-team-user/join/:joinToken
+router.get("/join/:joinToken", authenticateToken, async (req, res) => {
+  console.log("- accessed GET /contract-team-user/join/:joinToken");
+  const joinToken = req.params.joinToken;
+  jwt.verify(joinToken, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) return res.status(403).json({ message: "Invalid token" });
+    const { teamId } = decoded;
+    const contractTeamUserExists = await ContractTeamUser.findOne({
+      where: { teamId, userId: req.user.id },
+    });
+    if (contractTeamUserExists) {
+      return res.status(400).json({ message: "User already in team" });
+    }
+    // check if contractTeamUser already exists and if not create it
+    const contractTeamUser = await ContractTeamUser.create({
+      teamId,
+      userId: req.user.id,
+    });
+
+    res.json({ result: true, contractTeamUser });
+  });
 });
 
 module.exports = router;
