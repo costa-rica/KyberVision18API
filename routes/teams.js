@@ -138,41 +138,41 @@ router.delete("/player", authenticateToken, async (req, res) => {
   res.json({ result: true });
 });
 
-// !! This could probably go on its own route contractPlayerUser.js
-// POST /teams/link-user-to-team-as-player
-router.post(
-  "/link-user-to-team-as-player",
-  authenticateToken,
-  async (req, res) => {
-    console.log("- accessed POST /teams/link-user-to-team-as-player");
+// // !! This could probably go on its own route contractPlayerUser.js
+// // POST /teams/link-user-to-team-as-player
+// router.post(
+//   "/link-user-to-team-as-player",
+//   authenticateToken,
+//   async (req, res) => {
+//     console.log("- accessed POST /teams/link-user-to-team-as-player");
 
-    const { playerId, userId } = req.body;
-    // console.log(`playerId: ${playerId}`);
+//     const { playerId, userId } = req.body;
+//     // console.log(`playerId: ${playerId}`);
 
-    let contractPlayerUserObject = await ContractPlayerUser.findOne({
-      where: { playerId },
-    });
+//     let contractPlayerUserObject = await ContractPlayerUser.findOne({
+//       where: { playerId },
+//     });
 
-    let contractPlayerUserObjectUserAlreadyLinked =
-      await ContractPlayerUser.findOne({
-        where: { userId },
-      });
+//     let contractPlayerUserObjectUserAlreadyLinked =
+//       await ContractPlayerUser.findOne({
+//         where: { userId },
+//       });
 
-    if (contractPlayerUserObject) {
-      contractPlayerUserObject.userId = userId;
-      await contractPlayerUserObject.save();
-    } else if (contractPlayerUserObjectUserAlreadyLinked) {
-      contractPlayerUserObjectUserAlreadyLinked.playerId = playerId;
-      await contractPlayerUserObjectUserAlreadyLinked.save();
-    } else {
-      contractPlayerUserObject = await ContractPlayerUser.create({
-        playerId,
-        userId,
-      });
-    }
+//     if (contractPlayerUserObject) {
+//       contractPlayerUserObject.userId = userId;
+//       await contractPlayerUserObject.save();
+//     } else if (contractPlayerUserObjectUserAlreadyLinked) {
+//       contractPlayerUserObjectUserAlreadyLinked.playerId = playerId;
+//       await contractPlayerUserObjectUserAlreadyLinked.save();
+//     } else {
+//       contractPlayerUserObject = await ContractPlayerUser.create({
+//         playerId,
+//         userId,
+//       });
+//     }
 
-    res.json({ result: true, contractPlayerUserObject });
-  }
-);
+//     res.json({ result: true, contractPlayerUserObject });
+//   }
+// );
 
 module.exports = router;
