@@ -228,4 +228,42 @@ router.get("/join/:joinToken", authenticateToken, async (req, res) => {
   });
 });
 
+// POST /contract-team-user/toggle-role
+router.post("/toggle-role", authenticateToken, async (req, res) => {
+  console.log("- accessed POST /contract-team-user/toggle-role");
+  try {
+    const { teamId, role } = req.body;
+    const userId = req.user.id;
+    // console.log(`userId: ${userId}`);
+    // console.log(`teamId: ${teamId}`);
+    // console.log(`role: ${role}`);
+    const contractTeamUser = await ContractTeamUser.findOne({
+      where: { teamId, userId },
+    });
+    if (!contractTeamUser) {
+      return res.status(404).json({ message: "ContractTeamUser not found" });
+    }
+    // await contractTeamUser.update({ role });
+    if (role === "Coach") {
+      await contractTeamUser.update({ isCoach: !contractTeamUser.isCoach });
+    }
+    if (role === "Admin") {
+      await contractTeamUser.update({ isAdmin: !contractTeamUser.isAdmin });
+    }
+    if (role === "Member") {
+      await contractTeamUser.update({
+        isSuperUser: false,
+        isAdmin: false,
+        isCoach: false,
+      });
+    }
+    res.json({ result: true, contractTeamUser });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error modifying contractTeamUser role",
+      details: error.message,
+    });
+  }
+});
+
 module.exports = router;
