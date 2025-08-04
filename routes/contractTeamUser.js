@@ -232,11 +232,10 @@ router.get("/join/:joinToken", authenticateToken, async (req, res) => {
 router.post("/toggle-role", authenticateToken, async (req, res) => {
   console.log("- accessed POST /contract-team-user/toggle-role");
   try {
-    const { teamId, role } = req.body;
-    const userId = req.user.id;
-    // console.log(`userId: ${userId}`);
-    // console.log(`teamId: ${teamId}`);
-    // console.log(`role: ${role}`);
+    const { teamId, role, userId } = req.body;
+    console.log(`userId: ${userId}`);
+    console.log(`teamId: ${teamId}`);
+    console.log(`role: ${role}`);
     const contractTeamUser = await ContractTeamUser.findOne({
       where: { teamId, userId },
     });
