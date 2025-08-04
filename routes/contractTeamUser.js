@@ -15,8 +15,11 @@ const jwt = require("jsonwebtoken");
 
 // GET /contract-team-user
 router.get("/", authenticateToken, async (req, res) => {
+  console.log("- accessed GET /contract-team-user");
+  console.log(" 👉 Called by SelectTeamScreen in mobile app");
   try {
     const userId = req.user.id;
+    console.log(`userId: ${userId} -- user sending request to API`);
     const contractTeamUsers = await ContractTeamUser.findAll({
       where: { userId },
       include: {
@@ -61,7 +64,13 @@ router.get("/", authenticateToken, async (req, res) => {
       })
     );
 
-    // console.log(teamsArray);
+    console.log(" --- Response from API ------");
+    console.log(" --- teamsArray ------");
+    console.log(JSON.stringify(teamsArray, null, 2));
+    console.log(" -----------------------------");
+    console.log(" --- contractTeamUserArrayModified ------");
+    console.log(JSON.stringify(contractTeamUserArrayModified, null, 2));
+    console.log(" -----------------------------");
 
     res.status(200).json({
       teamsArray,
