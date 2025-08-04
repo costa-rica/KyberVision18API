@@ -113,7 +113,7 @@ router.post("/create/:teamId", authenticateToken, async (req, res) => {
 // GET /contract-team-user/:teamId
 router.get("/:teamId", authenticateToken, async (req, res) => {
   console.log("------- > accessed GET /contract-team-user/:teamId");
-  console.log(" 👉 Called by AdminSettings in mobile app");
+  // console.log(" 👉 Called by AdminSettings in mobile app");
   try {
     const teamId = req.params.teamId;
     console.log(`teamId: ${teamId}`);
@@ -163,10 +163,10 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
       };
     });
 
-    console.log(" --- API Response  used in updateSquadMembersArray ------");
-    console.log(" --- squadArrayWithPlayerFlag ------");
-    console.log(JSON.stringify(squadArrayWithPlayerFlag, null, 2));
-    console.log(" -----------------------------");
+    // console.log(" --- API Response  used in updateSquadMembersArray ------");
+    // console.log(" --- squadArrayWithPlayerFlag ------");
+    // console.log(JSON.stringify(squadArrayWithPlayerFlag, null, 2));
+    // console.log(" -----------------------------");
 
     res.status(200).json({ squadArray: squadArrayWithPlayerFlag });
   } catch (error) {
