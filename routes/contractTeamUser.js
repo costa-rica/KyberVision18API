@@ -17,8 +17,6 @@ const jwt = require("jsonwebtoken");
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(`userId: ${userId}`);
-    // const groups = await GroupContract.findAll({ where: { userId } });
     const contractTeamUsers = await ContractTeamUser.findAll({
       where: { userId },
       include: {
