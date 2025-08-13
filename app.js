@@ -68,7 +68,7 @@ sequelize
     // await onStartUpCreateFreeAgentLeagueAndTeam();
     await onStartUpCreateEnvUsers(); // <-- Call function here
     // await onStartUpCreatePracticeSessionForEachTeam();
-    // await onStartUpCreateLeague();
+    await onStartUpCreateLeague();
   })
   .catch((error) => console.error("❌ Error syncing database:", error));
 

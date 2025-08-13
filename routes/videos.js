@@ -336,7 +336,7 @@ router.post(
     console.log("- in POST /montage-service/video-completed-notify-user");
     const { filename } = req.body;
     const userId = req.user.id;
-    console.log(`headers: ${JSON.stringify(req.headers)}`);
+    // console.log(`headers: ${JSON.stringify(req.headers)}`);
     writeRequestArgs(req.body, "-04-montage-service");
     const user = await User.findByPk(userId);
     if (!user) {
@@ -349,10 +349,10 @@ router.post(
     // const tokenizedFilename = jwt.sign({ filename }, process.env.JWT_SECRET);
     const tokenizedFilename = tokenizeObject({ filename });
 
-    console.log("------ Check Token from notify-user -----");
-    console.log(tokenizedFilename);
-    console.log(`filename tokenized: ${detokenizeObject(tokenizedFilename)}`);
-    console.log("------ ENDCheck Token from notify-user -----");
+    // console.log("------ Check Token from notify-user -----");
+    // console.log(tokenizedFilename);
+    // console.log(`filename tokenized: ${detokenizeObject(tokenizedFilename)}`);
+    // console.log("------ ENDCheck Token from notify-user -----");
 
     await sendVideoMontageCompleteNotificationEmail(
       user.email,
