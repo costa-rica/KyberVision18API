@@ -278,4 +278,25 @@ router.post("/toggle-role", authenticateToken, async (req, res) => {
   }
 });
 
+// DELETE /contract-team-user/
+router.delete("/", authenticateToken, async (req, res) => {
+  console.log("- accessed DELETE /contract-team-user/");
+  try {
+    const { contractTeamUserId } = req.body;
+    const contractTeamUser = await ContractTeamUser.findOne({
+      where: { id: contractTeamUserId },
+    });
+    if (!contractTeamUser) {
+      return res.status(404).json({ message: "ContractTeamUser not found" });
+    }
+    await contractTeamUser.destroy();
+    res.json({ result: true, contractTeamUser });
+  } catch (error) {
+    res.status(500).json({
+      error: "Error deleting contractTeamUser",
+      details: error.message,
+    });
+  }
+});
+
 module.exports = router;
