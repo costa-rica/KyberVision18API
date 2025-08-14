@@ -6,6 +6,7 @@ const {
   // ContractScriptVideo,
   ContractVideoAction,
   Session,
+  ContractLeagueTeam,
 } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 // const { createEstimatedTimestampStartOfVideo } = require("../modules/scripts");
@@ -112,98 +113,6 @@ router.post(
   }
 );
 
-// // This was used before to get the Actions for the Review Video Selection Screen and then useed in the Review Video Screen
-// // --- > OBE this one and create a new endpoint GET /sessions/review-selection-screen/:sessionId/get-actions-for-videos
-// // 🔹 GET /sessions/:sessionId/actions : Get all actions for a session
-// // router.get("/:matchId/actions", authenticateToken, async (req, res) => {
-// router.get("/:sessionId/actions", authenticateToken, async (req, res) => {
-//   console.log(`- in GET /sessions/${req.params.sessionId}/actions`);
-
-//   try {
-//     const { sessionId } = req.params;
-
-//     // 🔹 Find all Scripts linked to this sessionId
-//     const scripts = await Script.findAll({
-//       where: { sessionId },
-//       attributes: ["id"], // Only need script IDs
-//     });
-
-//     console.log(`scripts: ${JSON.stringify(scripts)}`);
-
-//     if (scripts.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ result: false, message: "No actions found for this session." });
-//     }
-
-//     // Extract script IDs
-//     const scriptIds = scripts.map((script) => script.id);
-//     // console.log(`scriptIds: ${scriptIds}`);
-
-//     let arrayOfScriptActions = [];
-
-//     for (let i = 0; i < scriptIds.length; i++) {
-//       const actions = await Action.findAll({
-//         where: { scriptId: scriptIds[i] },
-//         order: [["timestamp", "ASC"]],
-//         include: [ContractVideoAction],
-//       });
-//       arrayOfScriptActions.push(actions);
-//     }
-
-//     let arrayOfScriptActionsModified = [];
-
-//     for (let i = 0; i < arrayOfScriptActions.length; i++) {
-//       // arrayOfScriptActions.forEach((actionsArray, i) => {
-//       let estimatedStartOfVideo = null;
-//       const updatedActions = arrayOfScriptActions[i].map((action, index) => {
-//         if (i === 0) {
-//           estimatedStartOfVideo = createEstimatedTimestampStartOfVideo(action);
-//           console.log(`estimatedStartOfVideo: ${estimatedStartOfVideo}`);
-//         }
-//         const { ContractVideoActions, ...actionWithoutContractVideoActions } =
-//           action.toJSON();
-//         return {
-//           // remove ContractVideoAction from action
-//           ...actionWithoutContractVideoActions,
-//           // ContractVideoActions: undefined,
-//           timestampFromStartOfVideo:
-//             ContractVideoActions.deltaTimeInSeconds - estimatedStartOfVideo,
-//           // timestampFromStartOfVideo:
-//           //   (new Date(action.timestamp) - estimatedStartOfVideo) / 1000, // Convert ms to seconds
-//           reviewVideoActionsArrayIndex: index + 1, // Start indexing at 1
-//         };
-//       });
-//       arrayOfScriptActionsModified.push(updatedActions);
-//     }
-
-//     // console.log(
-//     //   `✅ Updated ${updatedActions.length} actions with correct deltaTimeInSecondss`
-//     // );
-
-//     // const uniqueListOfPlayerNamesArray = await createUniquePlayerNamesArray(
-//     //   updatedActions
-//     // );
-//     // const uniqueListOfPlayerObjArray = await createUniquePlayerObjArray(
-//     //   updatedActions
-//     // );
-
-//     res.json({
-//       result: true,
-//       actionsArray: arrayOfScriptActionsModified,
-//       // playerNamesArray: uniqueListOfPlayerNamesArray,
-//       // playerDbObjectsArray: uniqueListOfPlayerObjArray,
-//     });
-//   } catch (error) {
-//     console.error("❌ Error fetching actions for match:", error);
-//     res.status(500).json({
-//       result: false,
-//       message: "Internal server error",
-//       error: error.message,
-//     });
-//   }
-// });
-
 // GET /sessions/:teamId
 router.get("/:teamId", authenticateToken, async (req, res) => {
   console.log(`- in GET /sessions/${req.params.teamId}`);
@@ -215,15 +124,15 @@ router.get("/:teamId", authenticateToken, async (req, res) => {
     // 🔹 Find all Sessions linked to this teamId
     const sessionsArray = await Session.findAll({
       where: { teamId },
-      attributes: [
-        "id",
-        "contractLeagueTeamId",
-        "teamId",
-        "sessionDate",
-        "createdAt",
-        "updatedAt",
-        "city",
-      ],
+      // attributes: [
+      //   "id",
+      //   "contractLeagueTeamId",
+      //   "teamId",
+      //   "sessionDate",
+      //   "createdAt",
+      //   "updatedAt",
+      //   "city",
+      // ],
     });
 
     // console.log(`sessionsArray: ${JSON.stringify(sessionsArray)}`);
@@ -275,19 +184,31 @@ router.post("/create", authenticateToken, async (req, res) => {
   console.log(`- in POST /sessions/create`);
 
   try {
-    const { teamId, sessionDate, contractLeagueTeamId } = req.body;
+    const {
+      teamId,
+      sessionDate,
+      contractLeagueTeamId,
+      sessionName,
+      sessionCity,
+    } = req.body;
     const city = "Practice";
     console.log(`teamId: ${teamId}`);
     console.log(`sessionDate: ${sessionDate}`);
     console.log(`city: ${city}`);
-    console.log(`contractLeagueTeamId: ${contractLeagueTeamId}`);
+    // console.log(`contractLeagueTeamId: ${contractLeagueTeamId}`);
+
+    // find contractLeagueTeam For now use default League
+    const contractLeagueTeam = await ContractLeagueTeam.findOne({
+      where: { id: 1 },
+    });
 
     // 🔹 Create new Session
     const sessionNew = await Session.create({
       teamId,
       sessionDate,
-      city,
-      contractLeagueTeamId,
+      city: sessionCity,
+      contractLeagueTeamId: contractLeagueTeam.id,
+      sessionName,
     });
 
     console.log(`sessionNew: ${JSON.stringify(sessionNew)}`);

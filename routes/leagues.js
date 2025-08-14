@@ -4,7 +4,7 @@ const { League, ContractLeagueTeam } = require("kybervision17db");
 const { authenticateToken } = require("../modules/userAuthentication");
 
 // GET /leagues
-router.get("/:teamId", authenticateToken, async (req, res) => {
+router.get("/team/:teamId", authenticateToken, async (req, res) => {
   try {
     const { teamId } = req.params;
     const contractLeagueTeamsArray = await ContractLeagueTeam.findAll({
