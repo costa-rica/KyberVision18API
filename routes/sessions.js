@@ -7,7 +7,7 @@ const {
   ContractVideoAction,
   Session,
   ContractLeagueTeam,
-} = require("kybervision17db");
+} = require("kybervision18db");
 const { authenticateToken } = require("../modules/userAuthentication");
 // const { createEstimatedTimestampStartOfVideo } = require("../modules/scripts");
 const {

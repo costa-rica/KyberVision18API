@@ -7,7 +7,7 @@ const {
   League,
   ContractTeamPlayer,
   ContractPlayerUser,
-} = require("kybervision17db");
+} = require("kybervision18db");
 const { authenticateToken } = require("../modules/userAuthentication");
 const { addNewPlayerToTeam } = require("../modules/players");
 

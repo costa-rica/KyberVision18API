@@ -13,7 +13,7 @@ const {
   Action,
   ContractVideoAction,
   Script,
-} = require("kybervision17db");
+} = require("kybervision18db");
 const { getSessionWithTeams } = require("../modules/sessions");
 const {
   upload,

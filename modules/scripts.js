@@ -1,4 +1,4 @@
-// const { Script, ContractScriptVideo } = require("kybervision17db");
+// const { Script, ContractScriptVideo } = require("kybervision18db");
 
 // Accepts an array of action objects and a deltaTimeInSeconds (in seconds)
 // Returns the estimated start of video timestamp

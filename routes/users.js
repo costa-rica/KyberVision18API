@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const { User, ContractTeamUser } = require("kybervision17db");
+const { User, ContractTeamUser } = require("kybervision18db");
 const jwt = require("jsonwebtoken");
 const { sendRegistrationEmail } = require("../modules/mailer");
 const os = require("os");

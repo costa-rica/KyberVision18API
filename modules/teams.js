@@ -3,7 +3,7 @@ const {
   League,
   ContractLeagueTeam,
   Session,
-} = require("kybervision17db");
+} = require("kybervision18db");
 
 async function createNewTeam(teamName, city, coachName, leagueId) {
   try {

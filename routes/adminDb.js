@@ -18,7 +18,7 @@ const {
   ContractVideoAction,
   Team,
   ContractPlayerUser,
-} = require("kybervision17db");
+} = require("kybervision18db");
 const models = {
   User,
   Video,

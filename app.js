@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { sequelize } = require("kybervision17db");
+const { sequelize } = require("kybervision18db");
 const { verifyCheckDirectoryExists } = require("./modules/onStartUp");
 verifyCheckDirectoryExists();
 var express = require("express");
