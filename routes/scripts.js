@@ -22,13 +22,9 @@ router.post(
     const user = req.user;
     let { actionsArray, sessionId } = req.body;
 
-    // console.log(
-    //   `--------- sessionId: ${sessionId}, scriptId: ${scriptId} ----`
-    // );
+    // console.log(`--------- sessionId: ${sessionId}, ----`);
     // console.log(`actionsArray: ${JSON.stringify(actionsArray)}`);
-    // console.log(
-    //   `--------- END sessionId: ${sessionId}, scriptId: ${scriptId} ----`
-    // );
+    // console.log(`--------- END sessionId: ${sessionId} ----`);
 
     // search actionsArray for earliest timestamp
     const earliestTimestamp = actionsArray.reduce((min, action) => {
@@ -57,25 +53,43 @@ router.post(
       //   })
       // );
 
-      // Create Actions (and favorites) — make sure to await and return Promises
-      await Promise.all(
-        actionsArray.map((elem) => {
-          return Action.sequelize.transaction(async (t) => {
-            const actionObj = { ...elem, scriptId };
+      // Sort by timestamp ascending
+      actionsArray = actionsArray.sort((a, b) => a.timestamp - b.timestamp);
 
-            // Create the action and await the instance
-            const action = await Action.create(actionObj, { transaction: t });
+      // // Create Actions (and favorites) — make sure to await and return Promises
+      // await Promise.all(
+      //   actionsArray.map((elem) => {
+      //     return Action.sequelize.transaction(async (t) => {
+      //       const actionObj = { ...elem, scriptId };
 
-            // If favorite, create the linking row
-            if (elem.favorite === true) {
-              await ContractUserAction.create(
-                { actionId: action.id, userId: user.id },
-                { transaction: t }
-              );
-            }
-          });
-        })
-      );
+      //       // Create the action and await the instance
+      //       const action = await Action.create(actionObj, { transaction: t });
+
+      //       // If favorite, create the linking row
+      //       if (elem.favorite === true) {
+      //         await ContractUserAction.create(
+      //           { actionId: action.id, userId: user.id },
+      //           { transaction: t }
+      //         );
+      //       }
+      //     });
+      //   })
+      // );
+
+      for (const elem of actionsArray) {
+        await Action.sequelize.transaction(async (t) => {
+          const actionObj = { ...elem, scriptId };
+
+          const action = await Action.create(actionObj, { transaction: t });
+
+          if (elem.favorite === true) {
+            await ContractUserAction.create(
+              { actionId: action.id, userId: user.id },
+              { transaction: t }
+            );
+          }
+        });
+      }
       res.json({
         result: true,
         message: `Actions for scriptId: ${scriptId}`,
