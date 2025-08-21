@@ -3,10 +3,10 @@ const router = express.Router();
 const {
   Video,
   Action,
-
   Script,
   //   SyncContract,
   ContractScriptVideo,
+  ContractUserAction,
 } = require("kybervision18db");
 
 const { authenticateToken } = require("../modules/userAuthentication");
@@ -20,12 +20,6 @@ router.post(
       "- accessed POST /scripts/scripting-live-screen/receive-actions-array"
     );
     const user = req.user;
-
-    // TODO:  add Script.timestampReferenceFirstAction
-    // TODO:  add Script.isScriptingLive = true
-
-    //   let { actionsArray, matchId, scriptId } = req.body;
-    // let { actionsArray, sessionId, scriptId } = req.body;
     let { actionsArray, sessionId } = req.body;
 
     // console.log(
@@ -52,17 +46,36 @@ router.post(
       let scriptId = script.id;
       // }
 
-      // Create actions
+      // // Create actions
+      // await Promise.all(
+      //   actionsArray.map((elem) => {
+      //     const actionObj = {
+      //       ...elem,
+      //       scriptId,
+      //     };
+      //     return Action.upsert(actionObj); // Will insert or update based on timestamp + scriptId
+      //   })
+      // );
+
+      // Create Actions (and favorites) — make sure to await and return Promises
       await Promise.all(
         actionsArray.map((elem) => {
-          const actionObj = {
-            ...elem,
-            scriptId,
-          };
-          return Action.upsert(actionObj); // Will insert or update based on timestamp + scriptId
+          return Action.sequelize.transaction(async (t) => {
+            const actionObj = { ...elem, scriptId };
+
+            // Create the action and await the instance
+            const action = await Action.create(actionObj, { transaction: t });
+
+            // If favorite, create the linking row
+            if (elem.favorite === true) {
+              await ContractUserAction.create(
+                { actionId: action.id, userId: user.id },
+                { transaction: t }
+              );
+            }
+          });
         })
       );
-
       res.json({
         result: true,
         message: `Actions for scriptId: ${scriptId}`,
@@ -74,64 +87,5 @@ router.post(
     }
   }
 );
-
-// -- > OBE ???
-// // 🔹 Get all actions for a script
-// router.get("/:scriptId/actions", authenticateToken, async (req, res) => {
-//   console.log(`- in GET /scripts/${req.params.scriptId}/actions`);
-
-//   try {
-//     const { scriptId } = req.params;
-//     // Find all ContractScriptVideos linked to the given scriptId
-//     const contractScriptVideos = await ContractScriptVideo.findOne({
-//       where: { scriptId },
-//     });
-
-//     if (!contractScriptVideos) {
-//       return res
-//         .status(404)
-//         .json({ result: false, message: "No actions found for this script." });
-//     }
-//     // 🔹 Find the Video associated with this SyncContract
-//     const video = await Video.findOne({
-//       where: { id: contractScriptVideos.videoId },
-//     });
-
-//     if (!video || !video.videoFileCreatedDateTimeEstimate) {
-//       return res.status(404).json({
-//         result: false,
-//         message: "No valid video file creation date found.",
-//       });
-//     }
-
-//     // Convert videoFileCreatedDateTimeEstimate to a Date object
-//     const videoCreatedDate = new Date(video.videoFileCreatedDateTimeEstimate);
-
-//     // Find all Actions linked to these ContractScriptVideos
-//     const actions = await Action.findAll({
-//       where: { scriptId: contractScriptVideos.id },
-//       order: [["timestamp", "ASC"]], // Sort by timestamp for better readability
-//     });
-
-//     // 🔹 Compute `timestampModified` for each action
-//     const modifiedActions = actions.map((action) => {
-//       const actionTimestamp = new Date(action.timestamp);
-//       return {
-//         ...action.get(), // Get plain object representation of Sequelize instance
-//         timestampOriginal: action.timestamp,
-//         timestamp: (actionTimestamp - videoCreatedDate) / 1000, // Difference in seconds
-//       };
-//     });
-
-//     res.json({ result: true, actionsArray: modifiedActions });
-//   } catch (error) {
-//     console.error("Error fetching actions for script:", error);
-//     res.status(500).json({
-//       result: false,
-//       message: "Internal server error",
-//       error: error.message,
-//     });
-//   }
-// });
 
 module.exports = router;

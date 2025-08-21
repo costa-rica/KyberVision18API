@@ -18,6 +18,7 @@ const {
   ContractVideoAction,
   Team,
   ContractPlayerUser,
+  ContractUserAction,
 } = require("kybervision18db");
 const models = {
   User,
@@ -36,6 +37,7 @@ const models = {
   ContractVideoAction,
   Team,
   ContractPlayerUser,
+  ContractUserAction,
 };
 
 const fs = require("fs");
