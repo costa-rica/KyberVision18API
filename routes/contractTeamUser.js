@@ -9,6 +9,7 @@ const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../modules/userAuthentication");
 const jwt = require("jsonwebtoken");
+const { sendJoinSquadNotificationEmail } = require("../modules/mailer");
 
 // NOTE: This it the "Tribe" router. Formerly GroupContract
 /// --> would be the groups.js file in KV15API
@@ -184,8 +185,15 @@ router.post("/add-squad-member", authenticateToken, async (req, res) => {
     const { teamId, email } = req.body;
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res.status(404).json({
-        error: "User not found. Please have this email register first.",
+      console.log("-- User not found, triggering email function --  ");
+      // trigger function to send email to email address provided.
+      sendJoinSquadNotificationEmail(email);
+
+      // return res.status(404).json({
+      //   error: "User not found. Please have this email register first.",
+      // });
+      return res.status(200).json({
+        message: "User not found. Please have this email register first.",
       });
     }
     const contractTeamUser = await ContractTeamUser.create({

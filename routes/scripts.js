@@ -24,8 +24,7 @@ router.post(
 
     // console.log(`--------- sessionId: ${sessionId}, ----`);
     // console.log(`actionsArray: ${JSON.stringify(actionsArray)}`);
-    // console.log(`--------- END sessionId: ${sessionId} ----`);
-
+    // console.log(`user: ${JSON.stringify(user)}`);
     // search actionsArray for earliest timestamp
     const earliestTimestamp = actionsArray.reduce((min, action) => {
       return action.timestamp < min ? action.timestamp : min;

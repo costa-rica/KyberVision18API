@@ -23,9 +23,11 @@ const sendRegistrationEmail = async (toEmail, username) => {
 
     // Read the external HTML file
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
+    const urlLogo = `${process.env.URL_BASE_KV_API}/images/KyberV2Shiny.png`;
 
     // Replace the placeholder {{username}} with the actual username
     emailTemplate = emailTemplate.replace("{{username}}", username);
+    emailTemplate = emailTemplate.replace("{{urlLogo}}", urlLogo);
 
     const mailOptions = {
       from: process.env.ADMIN_EMAIL_ADDRESS,
@@ -49,9 +51,11 @@ const sendResetPasswordEmail = async (toEmail, resetLink) => {
 
     // Read the external HTML file
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
+    const urlLogo = `${process.env.URL_BASE_KV_API}/images/KyberV2Shiny.png`;
 
     // Replace the placeholder {{username}} with the actual username
     emailTemplate = emailTemplate.replace("{{resetLink}}", resetLink);
+    emailTemplate = emailTemplate.replace("{{urlLogo}}", urlLogo);
 
     const mailOptions = {
       from: process.env.ADMIN_EMAIL_ADDRESS,
@@ -82,17 +86,9 @@ const sendVideoMontageCompleteNotificationEmail = async (
     // Read the external HTML file
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
 
-    let montageUrlPlay;
-    let montageUrlDownload;
-    // if (process.env.NODE_ENV === "workstation") {
-    //   montageUrlPlay = `http://localhost:3000/videos/montage-service/play-video/${tokenizedFilename}`;
-    //   montageUrlDownload = `http://localhost:3000/videos/montage-service/download-video/${tokenizedFilename}`;
-    // } else {
-    //   montageUrlPlay = `https://api.kv15.dashanddata.com/videos/montage-service/play-video/${tokenizedFilename}`;
-    //   montageUrlDownload = `https://api.kv15.dashanddata.com/videos/montage-service/download-video/${tokenizedFilename}`;
-    // }
-    montageUrlPlay = `${process.env.URL_BASE_KV_API}/videos/montage-service/play-video/${tokenizedFilename}`;
-    montageUrlDownload = `${process.env.URL_BASE_KV_API}/videos/montage-service/download-video/${tokenizedFilename}`;
+    const montageUrlPlay = `${process.env.URL_BASE_KV_API}/videos/montage-service/play-video/${tokenizedFilename}`;
+    const montageUrlDownload = `${process.env.URL_BASE_KV_API}/videos/montage-service/download-video/${tokenizedFilename}`;
+    const urlLogo = `${process.env.URL_BASE_KV_API}/images/KyberV2Shiny.png`;
 
     // Replace the placeholder {{montageUrlPlay}} and {{montageUrlDownload}} with the actual link
     // emailTemplate = emailTemplate.replace("{{montageLink}}", link);
@@ -104,6 +100,7 @@ const sendVideoMontageCompleteNotificationEmail = async (
       /{{montageUrlDownload}}/g,
       montageUrlDownload
     );
+    emailTemplate = emailTemplate.replace("{{urlLogo}}", urlLogo);
 
     const mailOptions = {
       from: process.env.ADMIN_EMAIL_ADDRESS,
@@ -121,8 +118,43 @@ const sendVideoMontageCompleteNotificationEmail = async (
   }
 };
 
+const sendJoinSquadNotificationEmail = async (toEmail) => {
+  console.log("-- sendJoinSquadNotificationEmail --");
+  try {
+    const templatePath = path.join(
+      __dirname,
+      "../templates/requestToRegisterEmail.html"
+    );
+
+    // Read the external HTML file
+    let emailTemplate = fs.readFileSync(templatePath, "utf8");
+
+    const urlLogo = `${process.env.URL_BASE_KV_API}/images/KyberV2Shiny.png`;
+    const urlRegister = `https://${process.env.PREFIX_VIDEO_FILE_NAME}-manager.dashanddata.com/register`;
+
+    // Replace the placeholder {{registerUrl}} with the actual link
+    emailTemplate = emailTemplate.replace(/{{urlRegister}}/g, urlRegister);
+    emailTemplate = emailTemplate.replace(/{{urlLogo}}/g, urlLogo);
+
+    const mailOptions = {
+      from: process.env.ADMIN_EMAIL_ADDRESS,
+      to: toEmail,
+      subject: "You have been invited to join a squad on Kyber Vision!",
+      html: emailTemplate,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent:", info.response);
+    return info;
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendRegistrationEmail,
   sendResetPasswordEmail,
   sendVideoMontageCompleteNotificationEmail,
+  sendJoinSquadNotificationEmail,
 };
