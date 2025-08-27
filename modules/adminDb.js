@@ -21,6 +21,7 @@ const {
   Team,
   ContractPlayerUser,
   ContractUserAction,
+  PendingInvitations,
 } = require("kybervision18db");
 
 const { promisify } = require("util");
@@ -47,6 +48,7 @@ const models = {
   Team,
   ContractPlayerUser,
   ContractUserAction,
+  PendingInvitations,
 };
 
 async function readAndAppendDbTables(backupFolderPath) {

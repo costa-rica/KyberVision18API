@@ -19,6 +19,7 @@ const {
   Team,
   ContractPlayerUser,
   ContractUserAction,
+  PendingInvitations,
 } = require("kybervision18db");
 const models = {
   User,
@@ -38,6 +39,7 @@ const models = {
   Team,
   ContractPlayerUser,
   ContractUserAction,
+  PendingInvitations,
 };
 
 const fs = require("fs");

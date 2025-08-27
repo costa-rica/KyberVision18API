@@ -4,6 +4,7 @@ const {
   Team,
   ContractTeamPlayer,
   ContractPlayerUser,
+  PendingInvitations,
 } = require("kybervision18db");
 const express = require("express");
 const router = express.Router();
@@ -186,15 +187,28 @@ router.post("/add-squad-member", authenticateToken, async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) {
       console.log("-- User not found, triggering email function --  ");
-      // trigger function to send email to email address provided.
-      sendJoinSquadNotificationEmail(email);
 
-      // return res.status(404).json({
-      //   error: "User not found. Please have this email register first.",
-      // });
-      return res.status(200).json({
-        message: "User not found. Please have this email register first.",
+      // check if pending invitation exists
+      const pendingInvitation = await PendingInvitations.findOne({
+        where: { email, teamId },
       });
+      if (pendingInvitation) {
+        return res.status(400).json({
+          message: "User already invited.",
+        });
+      } else {
+        // create pending invitation
+        await PendingInvitations.create({
+          email,
+          teamId,
+        });
+        // trigger function to send email to email address provided.
+        sendJoinSquadNotificationEmail(email);
+
+        return res.status(200).json({
+          message: "User invited successfully.",
+        });
+      }
     }
     const contractTeamUser = await ContractTeamUser.create({
       teamId,

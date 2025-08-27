@@ -1,7 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const { User, ContractTeamUser } = require("kybervision18db");
+const {
+  User,
+  ContractTeamUser,
+  PendingInvitations,
+} = require("kybervision18db");
 const jwt = require("jsonwebtoken");
 const { sendRegistrationEmail } = require("../modules/mailer");
 const os = require("os");
@@ -10,7 +14,7 @@ const os = require("os");
 router.post("/register", async (req, res) => {
   const { firstName, lastName, password, email } = req.body;
 
-  if (!firstName || !lastName || !password || !email) {
+  if (!password || !email) {
     return res.status(400).json({ error: "Tous les champs sont requis." });
   }
 
@@ -48,6 +52,24 @@ router.post("/register", async (req, res) => {
       .catch((error) => console.error("Email failed:", error));
   } else {
     console.log("Email not sent");
+  }
+
+  // check if pending invitation exists
+  const pendingInvitationArray = await PendingInvitations.findAll({
+    where: { email },
+  });
+  if (pendingInvitationArray.length > 0) {
+    // create contract team user for each teamId in pendingInvitationArray
+    await Promise.all(
+      pendingInvitationArray.map(async (pendingInvitation) => {
+        await ContractTeamUser.create({
+          teamId: pendingInvitation.teamId,
+          userId: user.id,
+        });
+        // delete pending invitation
+        await pendingInvitation.destroy();
+      })
+    );
   }
 
   res.status(201).json({ message: "Successfully created user", user, token });
