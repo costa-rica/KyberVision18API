@@ -7,6 +7,7 @@ const {
   ContractVideoAction,
   Session,
   ContractLeagueTeam,
+  ContractUserAction,
 } = require("kybervision18db");
 const { authenticateToken } = require("../modules/userAuthentication");
 // const { createEstimatedTimestampStartOfVideo } = require("../modules/scripts");
@@ -42,37 +43,100 @@ router.post(
           order: [["timestamp", "ASC"]],
           include: [ContractVideoAction],
         });
-        const modifiedActionsArray = actionsArray.map((action, index) => {
-          const { ContractVideoActions, ...actionWithoutContractVideoActions } =
-            action.toJSON();
 
-          const contractVideoActionOfThisVideo = ContractVideoActions.find(
-            (contractVideoAction) =>
-              contractVideoAction.videoId === Number(videoId)
-          );
+        // 👇 Make map callback async and wrap in Promise.all --> needed for favorite
+        const modifiedActionsArray = await Promise.all(
+          actionsArray.map(async (action, index) => {
+            const {
+              ContractVideoActions,
+              ...actionWithoutContractVideoActions
+            } = action.toJSON();
 
-          const differenceInTimeActionMinusTimestampReferenceFirstAction =
-            (actionWithoutContractVideoActions.timestamp -
-              scriptsArray[i].timestampReferenceFirstAction) /
-            1000;
+            const contractVideoActionOfThisVideo = ContractVideoActions.find(
+              (contractVideoAction) =>
+                contractVideoAction.videoId === Number(videoId)
+            );
 
-          return {
-            // remove ContractVideoAction from action
-            ...actionWithoutContractVideoActions,
-            timestampReferenceFirstAction:
-              scriptsArray[i].timestampReferenceFirstAction,
-            timeDeltaInSeconds:
-              contractVideoActionOfThisVideo.deltaTimeInSeconds,
-            timestampFromStartOfVideo:
-              differenceInTimeActionMinusTimestampReferenceFirstAction +
-              contractVideoActionOfThisVideo.deltaTimeInSeconds,
-          };
-        });
+            const differenceInTimeActionMinusTimestampReferenceFirstAction =
+              (actionWithoutContractVideoActions.timestamp -
+                scriptsArray[i].timestampReferenceFirstAction) /
+              1000;
+
+            // 🔹 now we can await here
+            const contractUserActionObj = await ContractUserAction.findOne({
+              where: {
+                actionId: actionWithoutContractVideoActions.id,
+                userId: req.user.id,
+              },
+            });
+
+            const favorite = contractUserActionObj ? true : false;
+
+            return {
+              ...actionWithoutContractVideoActions,
+              timestampReferenceFirstAction:
+                scriptsArray[i].timestampReferenceFirstAction,
+              timeDeltaInSeconds:
+                contractVideoActionOfThisVideo.deltaTimeInSeconds,
+              timestampFromStartOfVideo:
+                differenceInTimeActionMinusTimestampReferenceFirstAction +
+                contractVideoActionOfThisVideo.deltaTimeInSeconds,
+              favorite,
+            };
+          })
+        );
+
         actionsArrayByScript.push({
           scriptId: scriptsArray[i].id,
           actionsArray: modifiedActionsArray,
         });
       }
+      // for (let i = 0; i < scriptsArray.length; i++) {
+      //   const actionsArray = await Action.findAll({
+      //     where: { scriptId: scriptsArray[i].id },
+      //     order: [["timestamp", "ASC"]],
+      //     include: [ContractVideoAction],
+      //   });
+      //   const modifiedActionsArray = actionsArray.map((action, index) => {
+      //     const { ContractVideoActions, ...actionWithoutContractVideoActions } =
+      //       action.toJSON();
+
+      //     const contractVideoActionOfThisVideo = ContractVideoActions.find(
+      //       (contractVideoAction) =>
+      //         contractVideoAction.videoId === Number(videoId)
+      //     );
+
+      //     const differenceInTimeActionMinusTimestampReferenceFirstAction =
+      //       (actionWithoutContractVideoActions.timestamp -
+      //         scriptsArray[i].timestampReferenceFirstAction) /
+      //       1000;
+
+      //     const contractUserActionObj = await ContractUserAction.findOne({
+      //       where: {
+      //         actionId: actionWithoutContractVideoActions.id,
+      //         userId: req.user.id,
+      //       },
+      //     });
+      //     const favorite = contractUserActionObj ? true : false;
+
+      //     return {
+      //       // remove ContractVideoAction from action
+      //       ...actionWithoutContractVideoActions,
+      //       timestampReferenceFirstAction:
+      //         scriptsArray[i].timestampReferenceFirstAction,
+      //       timeDeltaInSeconds:
+      //         contractVideoActionOfThisVideo.deltaTimeInSeconds,
+      //       timestampFromStartOfVideo:
+      //         differenceInTimeActionMinusTimestampReferenceFirstAction +
+      //         contractVideoActionOfThisVideo.deltaTimeInSeconds,
+      //       favorite,
+      //     };
+      //   });
+      //   actionsArrayByScript.push({
+      //     scriptId: scriptsArray[i].id,
+      //     actionsArray: modifiedActionsArray,
+      //   });
+      // }
 
       // Step 3: Merge all The actionsArrayByScript into one array
       const actionsArrayMerged = actionsArrayByScript
