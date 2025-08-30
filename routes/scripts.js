@@ -83,7 +83,7 @@ router.post(
 
           if (elem.favorite === true) {
             await ContractUserAction.create(
-              { actionId: action.id, userId: user.id },
+              { actionId: action.id, userId: user.id, sessionId },
               { transaction: t }
             );
           }
